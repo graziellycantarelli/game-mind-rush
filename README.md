@@ -67,8 +67,3 @@ python main.py
 | Power-ups | Adiciona recursos especiais que podem beneficiar o jogador durante a partida. |
 | Moeda de Pergunta | Permite ao jogador coletar moedas durante a partida e responder às perguntas. |
 
-## 👥 Integrantes
-
-| Arthur Teixeira - Desenvolvimento | Organização do Projeto | Design
-| Esthefany Vitória - Design | Desenvolvimento | Organização do Projeto
-| Grazielly Barros- Organização do Projeto | Design | Desenvolvimento
