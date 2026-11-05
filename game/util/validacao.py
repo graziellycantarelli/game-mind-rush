@@ -34,6 +34,10 @@ def validar_senha(senha):
         return "Senha inválida: falta " + ", ".join(faltando) + "."
     return None
 
+def validar_confirmacao(senha, confirmacao):
+    if senha != confirmacao:
+        return "As senhas não são iguais."
+    return None
 
 def validar_data_nascimento(texto):
     """Retorna (erro, data_iso). Se houver erro, data_iso é None."""

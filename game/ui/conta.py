@@ -51,11 +51,12 @@ def _quebrar_linhas(texto, fonte, largura_max):
     return linhas
 
 
-def _desenhar_mensagem(tela, texto, cor, y_topo):
-    for i, linha in enumerate(_quebrar_linhas(texto, FONTE_MSG, LARGURA_MAX_MSG)):
-        surf = FONTE_MSG.render(linha, True, cor)
-        tela.blit(surf, surf.get_rect(midtop=(LARGURA_TELA // 2, y_topo + i * 30)))
-
+def _desenhar_mensagens(tela, textos, cor, y):
+    for texto in textos:
+        for linha in _quebrar_linhas(texto, FONTE_MSG, LARGURA_MAX_MSG):
+            surf = FONTE_MSG.render(linha, True, cor)
+            tela.blit(surf, surf.get_rect(midtop=(LARGURA_TELA // 2, y)))
+            y += 30
 
 # ------------------------------------------------------------------- campos
 
@@ -82,7 +83,9 @@ class CampoTexto:
     def limpar(self):
         self.texto = ""
         self.foco = False
+        self.erro = False
         self.mostrar_senha = False
+        self.erro = False
 
     # --- entrada ---
     @staticmethod
@@ -123,6 +126,7 @@ class CampoTexto:
                 self.foco = self.rect.collidepoint(evento.pos)
 
         elif evento.type == pygame.KEYDOWN and self.foco:
+            self.erro = False
             if evento.key == pygame.K_BACKSPACE:
                 self._apagar()
             elif evento.unicode and evento.unicode.isprintable():
@@ -134,7 +138,9 @@ class CampoTexto:
         tela.blit(rotulo, (self.rect.x, self.rect.y - 28))
 
         pygame.draw.rect(tela, COR_FUNDO_CAMPO, self.rect, border_radius=8)
-        borda = cores['azul-jogo'] if self.foco else COR_BORDA
+        if self.erro: ...
+        elif self.foco: ...
+        else: ...
         pygame.draw.rect(tela, borda, self.rect, 2, border_radius=8)
 
         x_texto = self.rect.x + 10
@@ -255,7 +261,7 @@ class _TelaFormulario:
 
     def __init__(self):
         self.campos = []
-        self.mensagem = ""
+        self.mensagens = []
         self.mensagem_cor = cores['vermelho']
         self.y_titulo = int(ALTURA_TELA * 0.10)
         self.y_mensagem = 0
