@@ -9,6 +9,7 @@ from game.elements.chao import GerenciadorChao
 from game.render import desenhar_menu, desenhar_jogo, desenhar_gameover, desenhar_ranking, rect_sair_ranking, imagem_menu, imagem_gameover, mensagem_gameover
 from game.ui.botao import botao_jogar, botao_modos, botao_config, botao_ranking, botao_sair, botao_reiniciar, botao_sair_gameover, botao_menu
 from game.ui.conta import TelaConfig, TelaLogin, TelaCadastro
+from game.ui.perfil import TelaTrocarSenha, TelaTrocarUsuario, TelaApagarConta
 
 
 # valores da partida (início e reinício usam os mesmos)
@@ -19,7 +20,7 @@ ALTURA_PERSONAGEM = 80
 LARGURA_PERSONAGEM = 70
 X_PERSONAGEM = 150
 
-ESTADOS_CONTA = ("config", "login", "cadastro")
+ESTADOS_CONTA = ("config", "login", "cadastro", "trocar_senha", "trocar_usuario", "apagar_conta")
 
 
 class Motor:
@@ -44,6 +45,18 @@ class Motor:
         self.tela_config = TelaConfig()
         self.tela_login = TelaLogin()
         self.tela_cadastro = TelaCadastro()
+        self.tela_trocar_senha = TelaTrocarSenha()
+        self.tela_trocar_usuario = TelaTrocarUsuario()
+        self.tela_apagar_conta = TelaApagarConta()
+
+        # telas de formulário, desenhadas pelo nome do estado
+        self.formularios = {
+            "login": self.tela_login,
+            "cadastro": self.tela_cadastro,
+            "trocar_senha": self.tela_trocar_senha,
+            "trocar_usuario": self.tela_trocar_usuario,
+            "apagar_conta": self.tela_apagar_conta,
+        }
 
         # o personagem é criado uma única vez (carrega as imagens);
         # a posição real é definida em iniciar_partida()
@@ -105,16 +118,17 @@ class Motor:
             elif self.estado == "config":
                 self.tela_config.desenhar(self.tela, self.jogador)
 
-            elif self.estado == "login":
-                self.tela_login.desenhar(self.tela)
-
-            elif self.estado == "cadastro":
-                self.tela_cadastro.desenhar(self.tela)
+            elif self.estado in self.formularios:
+                self.formularios[self.estado].desenhar(self.tela)
 
             # único update de tela por frame
             pygame.display.update()
 
     # ------------------------------------------------------------ navegação
+
+    def abrir_config(self, mensagem=""):
+        self.tela_config.mensagem = mensagem
+        self.estado = "config"
 
     def abrir_login(self, mensagem=None, origem="menu", sucesso=False):
         self.origem_login = origem
@@ -125,8 +139,13 @@ class Motor:
         self.tela_cadastro.resetar()
         self.estado = "cadastro"
 
+    def abrir_perfil(self, estado):
+        """Abre trocar senha, trocar usuário ou apagar conta."""
+        self.formularios[estado].abrir(self.jogador)
+        self.estado = estado
+
     def tratar_evento_conta(self, evento):
-        """Eventos das telas de configuração, login e cadastro."""
+        """Eventos das telas de configuração, login, cadastro e perfil."""
         if self.estado == "config":
             acao = self.tela_config.tratar_evento(evento, self.jogador)
 
@@ -134,8 +153,11 @@ class Motor:
                 self.abrir_login(origem="config")
             elif acao == "cadastro":
                 self.abrir_cadastro()
+            elif acao in ("trocar_senha", "trocar_usuario", "apagar_conta"):
+                self.abrir_perfil(acao)
             elif acao == "logout":
                 self.jogador = None
+                self.abrir_config()
             elif acao == "voltar":
                 self.estado = "menu"
 
@@ -157,7 +179,33 @@ class Motor:
                 self.tela_login.campo_usuario.texto = self.tela_cadastro.usuario_criado
                 self.tela_login.focar_campo(self.tela_login.campo_senha)
             elif acao == "voltar":
-                self.estado = "config"
+                self.abrir_config()
+
+        elif self.estado == "trocar_senha":
+            acao = self.tela_trocar_senha.tratar_evento(evento)
+
+            if acao == "senha_alterada":
+                self.abrir_config("Senha alterada com sucesso!")
+            elif acao == "voltar":
+                self.abrir_config()
+
+        elif self.estado == "trocar_usuario":
+            acao = self.tela_trocar_usuario.tratar_evento(evento)
+
+            if acao == "usuario_alterado":
+                self.jogador["usuario"] = self.tela_trocar_usuario.novo_usuario
+                self.abrir_config("Nome de usuário alterado com sucesso!")
+            elif acao == "voltar":
+                self.abrir_config()
+
+        elif self.estado == "apagar_conta":
+            acao = self.tela_apagar_conta.tratar_evento(evento)
+
+            if acao == "conta_apagada":
+                self.jogador = None
+                self.abrir_config("Sua conta foi apagada.")
+            elif acao == "voltar":
+                self.abrir_config()
 
     def capturar_eventos(self):
         for evento in pygame.event.get():
@@ -193,7 +241,7 @@ class Motor:
                             self.estado = "rank"
 
                     elif botao_config.clicado(evento.pos):
-                        self.estado = "config"
+                        self.abrir_config()
 
                     elif botao_sair.clicado(evento.pos):
                         self.rodando = False

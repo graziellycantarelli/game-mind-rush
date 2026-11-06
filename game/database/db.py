@@ -46,10 +46,12 @@ def criar_tabelas():
 
 # jogadores
 
-def usuario_existe(usuario):
+def usuario_existe(usuario, ignorar_id=0):
+    """ignorar_id evita que o próprio jogador conte como 'já existe' ao trocar de nome."""
     with closing(_conectar()) as conn:
         linha = conn.execute(
-            "SELECT 1 FROM jogadores WHERE usuario = ? COLLATE NOCASE", (usuario,)
+            "SELECT 1 FROM jogadores WHERE usuario = ? COLLATE NOCASE AND id != ?",
+            (usuario, ignorar_id)
         ).fetchone()
     return linha is not None
 
@@ -92,6 +94,30 @@ def autenticar(usuario, senha):
     if hmac.compare_digest(hash_calculado, senha_hash):
         return {"id": jogador_id, "usuario": nome}
     return None
+
+
+def atualizar_senha(jogador_id, nova_senha):
+    salt = os.urandom(16)
+
+    with closing(_conectar()) as conn, conn:
+        conn.execute(
+            "UPDATE jogadores SET senha_hash = ?, salt = ? WHERE id = ?",
+            (_gerar_hash(nova_senha, salt), salt.hex(), jogador_id)
+        )
+
+
+def atualizar_usuario(jogador_id, novo_usuario):
+    with closing(_conectar()) as conn, conn:
+        conn.execute(
+            "UPDATE jogadores SET usuario = ? WHERE id = ?",
+            (novo_usuario, jogador_id)
+        )
+
+
+def apagar_jogador(jogador_id):
+    with closing(_conectar()) as conn, conn:
+        conn.execute("DELETE FROM partidas WHERE jogador_id = ?", (jogador_id,))
+        conn.execute("DELETE FROM jogadores WHERE id = ?", (jogador_id,))
 
 
 # pontuação

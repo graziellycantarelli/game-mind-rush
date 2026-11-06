@@ -16,19 +16,22 @@ COR_FUNDO_CAMPO = (45, 45, 45)
 COR_BORDA = (110, 110, 110)
 COR_PLACEHOLDER = (110, 110, 110)
 COR_BOTAO_NEUTRO = (90, 90, 90)
+COR_PERIGO = (170, 45, 45)
+COR_ERRO = (255, 90, 90)
 LARGURA_MAX_MSG = min(int(LARGURA_TELA * 0.8), 900)
 
 FONTE_TITULO_TELA = pygame.font.SysFont('arial', 56)
 FONTE_ROTULO = pygame.font.SysFont('arial', 24)
 FONTE_CAMPO = pygame.font.SysFont('arial', 30)
 FONTE_MSG = pygame.font.SysFont('arial', 26)
+FONTE_ERRO = pygame.font.SysFont('arial', 22)
 FONTE_BOTAO = pygame.font.SysFont('arial', 30, bold=True)
 FONTE_PEQUENA = pygame.font.SysFont('arial', 20)
 
 
 # ------------------------------------------------------------------ helpers
 
-def _permitido_usuario(char):
+def permitido_usuario(char):
     return char.isascii() and (char.isalnum() or char == "_")
 
 
@@ -51,19 +54,18 @@ def _quebrar_linhas(texto, fonte, largura_max):
     return linhas
 
 
-def _desenhar_mensagens(tela, textos, cor, y):
-    for texto in textos:
-        for linha in _quebrar_linhas(texto, FONTE_MSG, LARGURA_MAX_MSG):
-            surf = FONTE_MSG.render(linha, True, cor)
-            tela.blit(surf, surf.get_rect(midtop=(LARGURA_TELA // 2, y)))
-            y += 30
+def desenhar_mensagem(tela, texto, cor, y_topo):
+    for i, linha in enumerate(_quebrar_linhas(texto, FONTE_MSG, LARGURA_MAX_MSG)):
+        surf = FONTE_MSG.render(linha, True, cor)
+        tela.blit(surf, surf.get_rect(midtop=(LARGURA_TELA // 2, y_topo + i * 30)))
+
 
 # ------------------------------------------------------------------- campos
 
 class CampoTexto:
     def __init__(self, rotulo, x, y, largura=LARGURA_CAMPO, altura=ALTURA_CAMPO,
                 senha=False, max_len=32, permitido=None, mascara_data=False,
-                placeholder=""):
+                placeholder="", validar=None):
         self.rotulo = rotulo
         self.rect = pygame.Rect(x, y, largura, altura)
         self.senha = senha
@@ -71,8 +73,10 @@ class CampoTexto:
         self.permitido = permitido
         self.mascara_data = mascara_data
         self.placeholder = placeholder
+        self.validar = validar
 
         self.texto = ""
+        self.erro = ""
         self.foco = False
         self.mostrar_senha = False
 
@@ -82,10 +86,12 @@ class CampoTexto:
 
     def limpar(self):
         self.texto = ""
+        self.erro = ""
         self.foco = False
-        self.erro = False
         self.mostrar_senha = False
-        self.erro = False
+
+    def _esta_valido(self):
+        return bool(self.texto) and self.validar is not None and not self.validar(self.texto)
 
     # --- entrada ---
     @staticmethod
@@ -126,10 +132,11 @@ class CampoTexto:
                 self.foco = self.rect.collidepoint(evento.pos)
 
         elif evento.type == pygame.KEYDOWN and self.foco:
-            self.erro = False
             if evento.key == pygame.K_BACKSPACE:
+                self.erro = ""
                 self._apagar()
             elif evento.unicode and evento.unicode.isprintable():
+                self.erro = ""
                 self._inserir(evento.unicode)
 
     # --- desenho ---
@@ -137,10 +144,16 @@ class CampoTexto:
         rotulo = FONTE_ROTULO.render(self.rotulo, True, cores['branco'])
         tela.blit(rotulo, (self.rect.x, self.rect.y - 28))
 
+        if self.erro:
+            borda = COR_ERRO
+        elif self._esta_valido():
+            borda = cores['verde-logo']
+        elif self.foco:
+            borda = cores['azul-jogo']
+        else:
+            borda = COR_BORDA
+
         pygame.draw.rect(tela, COR_FUNDO_CAMPO, self.rect, border_radius=8)
-        if self.erro: ...
-        elif self.foco: ...
-        else: ...
         pygame.draw.rect(tela, borda, self.rect, 2, border_radius=8)
 
         x_texto = self.rect.x + 10
@@ -182,6 +195,20 @@ class CampoTexto:
             surf = FONTE_PEQUENA.render(legenda, True, cores['branco'])
             tela.blit(surf, surf.get_rect(center=self.rect_olho.center))
 
+        if self.erro:
+            self._desenhar_erro(tela)
+
+    def _desenhar_erro(self, tela):
+        """Escreve o erro ao lado do campo, no espaço livre à direita."""
+        x = self.rect.right + 24
+        linhas = _quebrar_linhas(self.erro, FONTE_ERRO, LARGURA_TELA - x - 24)
+        altura_linha = FONTE_ERRO.get_linesize()
+        y = self.rect.centery - len(linhas) * altura_linha // 2
+
+        for i, linha in enumerate(linhas):
+            surf = FONTE_ERRO.render(linha, True, COR_ERRO)
+            tela.blit(surf, (x, y + i * altura_linha))
+
 
 class BotaoTexto:
     def __init__(self, texto, centro, largura=240, altura=56, cor=None):
@@ -206,19 +233,27 @@ class BotaoTexto:
 # ------------------------------------------------------------------- telas
 
 class TelaConfig:
-    """Menu de conta: entrar, cadastrar-se, sair da conta e voltar."""
+    """Menu de conta: entrar, cadastrar-se, gerenciar a conta, sair e voltar."""
 
     def __init__(self):
         cx = LARGURA_TELA // 2
         self.y_inicial = int(ALTURA_TELA * 0.38)
+        self.mensagem = ""
         self.botao_login = BotaoTexto("Entrar", (cx, 0), largura=300)
         self.botao_cadastro = BotaoTexto("Cadastrar-se", (cx, 0), largura=300)
+        self.botao_trocar_senha = BotaoTexto("Trocar senha", (cx, 0), largura=300)
+        self.botao_trocar_usuario = BotaoTexto("Trocar usuário", (cx, 0), largura=300)
+        self.botao_apagar = BotaoTexto("Apagar conta", (cx, 0), largura=300, cor=COR_PERIGO)
         self.botao_logout = BotaoTexto("Sair da conta", (cx, 0), largura=300)
         self.botao_voltar = BotaoTexto("Voltar", (cx, 0), largura=300, cor=COR_BOTAO_NEUTRO)
 
     def _botoes_ativos(self, jogador):
         if jogador:
-            lista = [("logout", self.botao_logout), ("voltar", self.botao_voltar)]
+            lista = [("trocar_senha", self.botao_trocar_senha),
+                    ("trocar_usuario", self.botao_trocar_usuario),
+                    ("apagar_conta", self.botao_apagar),
+                    ("logout", self.botao_logout),
+                    ("voltar", self.botao_voltar)]
         else:
             lista = [("login", self.botao_login),
                     ("cadastro", self.botao_cadastro),
@@ -251,34 +286,53 @@ class TelaConfig:
         surf = FONTE_MSG.render(status, True, cores['azul-jogo'])
         tela.blit(surf, surf.get_rect(center=(LARGURA_TELA // 2, int(ALTURA_TELA * 0.25))))
 
+        if self.mensagem:
+            surf = FONTE_MSG.render(self.mensagem, True, cores['verde'])
+            tela.blit(surf, surf.get_rect(center=(LARGURA_TELA // 2, int(ALTURA_TELA * 0.31))))
+
         for _, botao in self._botoes_ativos(jogador):
             botao.desenhar(tela)
 
 
-class _TelaFormulario:
-    """Base de login e cadastro: campos, Tab/Enter/Esc, mensagem e botões."""
+class TelaFormulario:
+    """Base de login, cadastro e telas de perfil: campos, Tab/Enter/Esc, mensagem e botões."""
     TITULO = ""
 
     def __init__(self):
         self.campos = []
-        self.mensagens = []
+        self.mensagem = ""
         self.mensagem_cor = cores['vermelho']
         self.y_titulo = int(ALTURA_TELA * 0.10)
         self.y_mensagem = 0
         self.botao_principal = None
         self.botao_voltar = None
 
-    def _criar_rodape(self, texto_principal):
+    def _criar_rodape(self, texto_principal, cor_principal=None):
         """Posiciona mensagem e botões logo abaixo do último campo."""
         cx = LARGURA_TELA // 2
         self.y_mensagem = self.campos[-1].rect.bottom + 14
         y_botoes = self.y_mensagem + 95
-        self.botao_principal = BotaoTexto(texto_principal, (cx - 140, y_botoes))
+        self.botao_principal = BotaoTexto(texto_principal, (cx - 140, y_botoes), cor=cor_principal)
         self.botao_voltar = BotaoTexto("Voltar", (cx + 140, y_botoes), cor=COR_BOTAO_NEUTRO)
 
     def definir_mensagem(self, texto, erro=True):
         self.mensagem = texto
         self.mensagem_cor = cores['vermelho'] if erro else cores['verde']
+
+    def marcar_erros(self, pares):
+        """Recebe pares (campo, erro) e mostra cada erro ao lado do seu campo.
+        Erro None significa campo ok. Retorna True se houve algum erro."""
+        self.mensagem = ""
+        for campo in self.campos:
+            campo.erro = ""
+
+        com_erro = [(campo, erro) for campo, erro in pares if erro]
+        for campo, erro in com_erro:
+            campo.erro = erro
+
+        if com_erro:
+            self.focar_campo(com_erro[0][0])
+        return bool(com_erro)
 
     def resetar(self, mensagem=None, sucesso=False):
         for campo in self.campos:
@@ -338,13 +392,13 @@ class _TelaFormulario:
             campo.desenhar(tela)
 
         if self.mensagem:
-            _desenhar_mensagem(tela, self.mensagem, self.mensagem_cor, self.y_mensagem)
+            desenhar_mensagem(tela, self.mensagem, self.mensagem_cor, self.y_mensagem)
 
         self.botao_principal.desenhar(tela)
         self.botao_voltar.desenhar(tela)
 
 
-class TelaLogin(_TelaFormulario):
+class TelaLogin(TelaFormulario):
     TITULO = "Entrar"
 
     def __init__(self):
@@ -353,7 +407,7 @@ class TelaLogin(_TelaFormulario):
         y0 = int(ALTURA_TELA * 0.30)
 
         self.campo_usuario = CampoTexto("Nome de usuário", x, y0,
-                                        max_len=16, permitido=_permitido_usuario)
+                                        max_len=16, permitido=permitido_usuario)
         self.campo_senha = CampoTexto("Senha", x, y0 + PASSO_CAMPO, senha=True)
         self.campos = [self.campo_usuario, self.campo_senha]
 
@@ -375,7 +429,7 @@ class TelaLogin(_TelaFormulario):
         return "logado"
 
 
-class TelaCadastro(_TelaFormulario):
+class TelaCadastro(TelaFormulario):
     TITULO = "Cadastro"
 
     def __init__(self):
@@ -385,17 +439,30 @@ class TelaCadastro(_TelaFormulario):
         y0 = int(ALTURA_TELA * 0.19)
 
         self.campo_usuario = CampoTexto("Nome de usuário", x, y0,
-                                        max_len=16, permitido=_permitido_usuario)
+                                        max_len=16, permitido=permitido_usuario,
+                                        validar=validacao.validar_usuario)
         self.campo_email = CampoTexto("E-mail", x, y0 + PASSO_CAMPO,
-                                        max_len=60, permitido=_permitido_email)
-        self.campo_senha = CampoTexto("Senha", x, y0 + 2 * PASSO_CAMPO, senha=True)
-        self.campo_nascimento = CampoTexto("Data de nascimento", x, y0 + 3 * PASSO_CAMPO,
-                                            mascara_data=True, placeholder="DD/MM/AAAA")
-        self.campos = [self.campo_usuario, self.campo_email,
-                        self.campo_senha, self.campo_nascimento]
+                                        max_len=60, permitido=_permitido_email,
+                                        validar=validacao.validar_email)
+        self.campo_senha = CampoTexto("Senha", x, y0 + 2 * PASSO_CAMPO, senha=True,
+                                        validar=validacao.validar_senha)
+        self.campo_confirmar = CampoTexto("Confirmar senha", x, y0 + 3 * PASSO_CAMPO, senha=True,
+                                            validar=self._validar_confirmacao)
+        self.campo_nascimento = CampoTexto("Data de nascimento", x, y0 + 4 * PASSO_CAMPO,
+                                            mascara_data=True, placeholder="DD/MM/AAAA",
+                                            validar=self._validar_nascimento)
+        self.campos = [self.campo_usuario, self.campo_email, self.campo_senha,
+                        self.campo_confirmar, self.campo_nascimento]
 
         self._criar_rodape("Cadastrar")
         self.usuario_criado = ""
+
+    def _validar_confirmacao(self, texto):
+        return validacao.validar_confirmacao(self.campo_senha.texto, texto)
+
+    @staticmethod
+    def _validar_nascimento(texto):
+        return validacao.validar_data_nascimento(texto)[0]
 
     def enviar(self):
         usuario = self.campo_usuario.texto.strip()
@@ -403,25 +470,26 @@ class TelaCadastro(_TelaFormulario):
         senha = self.campo_senha.texto
         nascimento = self.campo_nascimento.texto
 
-        erro = validacao.validar_usuario(usuario)
-        if erro:
-            return self._erro(erro, self.campo_usuario)
-        if db.usuario_existe(usuario):
-            return self._erro("Nome de usuário já existe. Escolha outro.", self.campo_usuario)
+        erro_usuario = validacao.validar_usuario(usuario)
+        if not erro_usuario and db.usuario_existe(usuario):
+            erro_usuario = "Nome de usuário já existe. Escolha outro."
 
-        erro = validacao.validar_email(email)
-        if erro:
-            return self._erro(erro, self.campo_email)
-        if db.email_existe(email):
-            return self._erro("E-mail já cadastrado. Tente entrar com a sua conta.", self.campo_email)
+        erro_email = validacao.validar_email(email)
+        if not erro_email and db.email_existe(email):
+            erro_email = "E-mail já cadastrado. Tente entrar com a sua conta."
 
-        erro = validacao.validar_senha(senha)
-        if erro:
-            return self._erro(erro, self.campo_senha)
+        erro_senha = validacao.validar_senha(senha)
+        erro_confirmar = validacao.validar_confirmacao(senha, self.campo_confirmar.texto)
+        erro_nascimento, nascimento_iso = validacao.validar_data_nascimento(nascimento)
 
-        erro, nascimento_iso = validacao.validar_data_nascimento(nascimento)
-        if erro:
-            return self._erro(erro, self.campo_nascimento)
+        if self.marcar_erros([
+            (self.campo_usuario, erro_usuario),
+            (self.campo_email, erro_email),
+            (self.campo_senha, erro_senha),
+            (self.campo_confirmar, erro_confirmar),
+            (self.campo_nascimento, erro_nascimento),
+        ]):
+            return None
 
         try:
             db.inserir_jogador(usuario, email, senha, nascimento_iso)
