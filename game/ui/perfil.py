@@ -10,9 +10,8 @@ from game.ui.conta import (CampoTexto, TelaFormulario, desenhar_mensagem, permit
                             LARGURA_CAMPO, PASSO_CAMPO, COR_PERIGO)
 
 X_CAMPOS = (LARGURA_TELA - LARGURA_CAMPO) // 2
-Y_CAMPOS = int(ALTURA_TELA * 0.30)
 
-AVISO_APAGAR = "Isso apaga a sua conta e todas as suas pontuações para sempre."
+AVISO_APAGAR = "Isso apaga a conta e as pontuações para sempre."
 
 
 class TelaPerfil(TelaFormulario):
@@ -30,10 +29,11 @@ class TelaTrocarSenha(TelaPerfil):
 
     def __init__(self):
         super().__init__()
-        self.campo_atual = CampoTexto("Senha atual", X_CAMPOS, Y_CAMPOS, senha=True)
-        self.campo_nova = CampoTexto("Nova senha", X_CAMPOS, Y_CAMPOS + PASSO_CAMPO, senha=True)
+        y0 = self._posicionar(3)
+        self.campo_atual = CampoTexto("Senha atual", X_CAMPOS, y0, senha=True)
+        self.campo_nova = CampoTexto("Nova senha", X_CAMPOS, y0 + PASSO_CAMPO, senha=True)
         self.campo_confirmar = CampoTexto("Confirmar nova senha", X_CAMPOS,
-                                            Y_CAMPOS + 2 * PASSO_CAMPO, senha=True)
+                                            y0 + 2 * PASSO_CAMPO, senha=True)
         self.campos = [self.campo_atual, self.campo_nova, self.campo_confirmar]
 
         self._criar_rodape("Salvar")
@@ -68,9 +68,10 @@ class TelaTrocarUsuario(TelaPerfil):
 
     def __init__(self):
         super().__init__()
-        self.campo_novo = CampoTexto("Novo nome de usuário", X_CAMPOS, Y_CAMPOS,
+        y0 = self._posicionar(2)
+        self.campo_novo = CampoTexto("Novo nome de usuário", X_CAMPOS, y0,
                                     max_len=16, permitido=permitido_usuario)
-        self.campo_senha = CampoTexto("Senha", X_CAMPOS, Y_CAMPOS + PASSO_CAMPO, senha=True)
+        self.campo_senha = CampoTexto("Senha", X_CAMPOS, y0 + PASSO_CAMPO, senha=True)
         self.campos = [self.campo_novo, self.campo_senha]
 
         self._criar_rodape("Salvar")
@@ -109,8 +110,9 @@ class TelaApagarConta(TelaPerfil):
 
     def __init__(self):
         super().__init__()
-        self.campo_senha = CampoTexto("Digite a sua senha para confirmar",
-                                        X_CAMPOS, Y_CAMPOS, senha=True)
+        # espaço extra entre o título e o campo, para caber o aviso
+        y0 = self._posicionar(1, espaco_titulo=int(ALTURA_TELA * 0.19))
+        self.campo_senha = CampoTexto("Senha para confirmar", X_CAMPOS, y0, senha=True)
         self.campos = [self.campo_senha]
 
         self._criar_rodape("Apagar", cor_principal=COR_PERIGO)
@@ -126,6 +128,7 @@ class TelaApagarConta(TelaPerfil):
         db.apagar_jogador(self.jogador["id"])
         return "conta_apagada"
 
-    def desenhar(self, tela):
-        super().desenhar(tela)
-        desenhar_mensagem(tela, AVISO_APAGAR, cores['amarelo'], int(ALTURA_TELA * 0.19))
+    def desenhar(self, tela, clima=None):
+        super().desenhar(tela, clima)
+        y_aviso = self.y_titulo + int(ALTURA_TELA * 0.065)
+        desenhar_mensagem(tela, AVISO_APAGAR, cores['amarelo'], y_aviso)

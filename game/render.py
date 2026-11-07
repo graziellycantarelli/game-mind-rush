@@ -6,8 +6,9 @@ from game.ui.logo import logo_menu
 from game.configuracoes import LARGURA_TELA, ALTURA_TELA, FONTE_TITULO, FONTE_PONTOS, FONTE_MENSAGEM, imagem_menu, imagem_bg_rank, imagem_sair_ranking, imagem_bg_jogo, rect_sair_ranking, mensagem_gameover, imagem_gameover
 from game.ui.botao import botao_jogar, botao_modos, botao_config, botao_ranking, botao_sair, botao_reiniciar, botao_sair_gameover, botao_menu
 
-def desenhar_menu(tela, jogador=None):
+def desenhar_menu(tela, clima, jogador=None):
     tela.blit(imagem_menu, (0, 0))
+    clima.desenhar(tela)
 
     if jogador:
         saudacao = FONTE_MENSAGEM.render(f"Oi, {jogador['usuario']}", True, cores['verde-logo'])
@@ -21,8 +22,9 @@ def desenhar_menu(tela, jogador=None):
     botao_sair.desenhar(tela)
 
 
-def desenhar_jogo(tela, personagem, gerenciador_chao, pontos):
+def desenhar_jogo(tela, clima, personagem, gerenciador_chao, pontos):
     tela.blit(imagem_bg_jogo, (0, 0))
+    clima.desenhar(tela)
 
     gerenciador_chao.desenhar(tela)
     personagem.desenhar(tela)
@@ -57,3 +59,4 @@ def desenhar_ranking(tela, top5):
         tela.blit(ranking, rect_rank_text)
 
     tela.blit(imagem_sair_ranking, rect_sair_ranking)
+ 

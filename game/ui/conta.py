@@ -3,30 +3,82 @@
 import sqlite3
 import pygame
 
-from game.configuracoes import LARGURA_TELA, ALTURA_TELA, FONTE_MENSAGEM
+from game.configuracoes import LARGURA_TELA, ALTURA_TELA, imagem_bg_cadastro
 from game.util.cores import cores
 from game.util import validacao
 from game.database import db
 
-# --- aparência ---
-LARGURA_CAMPO = 520
-ALTURA_CAMPO = 52
-PASSO_CAMPO = 92                 # distância vertical entre um campo e o próximo
-COR_FUNDO_CAMPO = (45, 45, 45)
-COR_BORDA = (110, 110, 110)
-COR_PLACEHOLDER = (110, 110, 110)
-COR_BOTAO_NEUTRO = (90, 90, 90)
-COR_PERIGO = (170, 45, 45)
-COR_ERRO = (255, 90, 90)
-LARGURA_MAX_MSG = min(int(LARGURA_TELA * 0.8), 900)
+# --- aparência: tudo proporcional à altura da tela (medidas pensadas para 1080p) ---
+ESCALA = ALTURA_TELA / 1080
+CAMINHO_FONTE = './fontes/aseprite.ttf'
+FONTE_TEM_ACENTOS = False   # mude para True se trocar por uma fonte pixel que tenha acentos
 
-FONTE_TITULO_TELA = pygame.font.SysFont('arial', 56)
-FONTE_ROTULO = pygame.font.SysFont('arial', 24)
-FONTE_CAMPO = pygame.font.SysFont('arial', 30)
-FONTE_MSG = pygame.font.SysFont('arial', 26)
-FONTE_ERRO = pygame.font.SysFont('arial', 22)
-FONTE_BOTAO = pygame.font.SysFont('arial', 30, bold=True)
-FONTE_PEQUENA = pygame.font.SysFont('arial', 20)
+
+def _esc(valor):
+    return max(1, int(valor * ESCALA))
+
+
+class FontePixel:
+    """Fonte pixel do jogo; as letras com acento saem da Arial, que garante que apareçam."""
+
+    def __init__(self, tamanho):
+        self.principal = pygame.font.Font(CAMINHO_FONTE, _esc(tamanho))
+        self.apoio = pygame.font.SysFont('arial', _esc(tamanho), bold=True)
+        self.subida = max(self.principal.get_ascent(), self.apoio.get_ascent())
+        self.descida = max(-self.principal.get_descent(), -self.apoio.get_descent())
+
+    def _fonte_de(self, char):
+        if ord(char) > 127 and not FONTE_TEM_ACENTOS:
+            return self.apoio
+        return self.principal
+
+    def size(self, texto):
+        largura = sum(self._fonte_de(c).size(c)[0] for c in texto)
+        return largura, self.subida + self.descida
+
+    def get_linesize(self):
+        return self.subida + self.descida
+
+    def render(self, texto, antialias, cor):
+        superficie = pygame.Surface(self.size(texto), pygame.SRCALPHA)
+        x = 0
+        for char in texto:
+            fonte = self._fonte_de(char)
+            glifo = fonte.render(char, antialias, cor)
+            superficie.blit(glifo, (x, self.subida - fonte.get_ascent()))
+            x += glifo.get_width()
+        return superficie
+
+
+LARGURA_CAMPO = _esc(600)
+ALTURA_CAMPO = _esc(64)
+PASSO_CAMPO = _esc(112)          # distância vertical entre um campo e o próximo
+ESPACO_TITULO = _esc(130)        # do centro do título ao topo do primeiro campo
+LARGURA_MAX_MSG = LARGURA_CAMPO + _esc(200)
+RAIO = _esc(8)
+ESPESSURA_BORDA = max(2, _esc(4))
+SOMBRA = max(2, _esc(3))
+
+COR_FUNDO_CAMPO = (18, 28, 64)
+COR_BORDA = (90, 120, 200)
+COR_PLACEHOLDER = (110, 130, 180)
+COR_TITULO = (255, 225, 60)
+COR_BOTAO_NEUTRO = (255, 140, 30)
+COR_PERIGO = (220, 50, 60)
+COR_SAIR = (160, 90, 230)
+COR_ERRO = (255, 70, 90)
+
+FONTE_TITULO_TELA = FontePixel(72)
+FONTE_ROTULO = FontePixel(30)
+FONTE_CAMPO = FontePixel(34)
+FONTE_MSG = FontePixel(32)
+FONTE_ERRO = FontePixel(28)
+FONTE_BOTAO = FontePixel(36)
+FONTE_PEQUENA = FontePixel(22)
+
+# escurece a imagem de fundo para o texto continuar legível
+PELICULA = pygame.Surface((LARGURA_TELA, ALTURA_TELA))
+PELICULA.set_alpha(90)
 
 
 # ------------------------------------------------------------------ helpers
@@ -54,10 +106,33 @@ def _quebrar_linhas(texto, fonte, largura_max):
     return linhas
 
 
+def renderizar(fonte, texto, cor):
+    """Texto com sombra, como os textos do jogo."""
+    frente = fonte.render(texto, True, cor)
+    sombra = fonte.render(texto, True, cores['preto'])
+
+    tamanho = (frente.get_width() + SOMBRA, frente.get_height() + SOMBRA)
+    resultado = pygame.Surface(tamanho, pygame.SRCALPHA)
+    resultado.blit(sombra, (SOMBRA, SOMBRA))
+    resultado.blit(frente, (0, 0))
+    return resultado
+
+
 def desenhar_mensagem(tela, texto, cor, y_topo):
+    altura_linha = FONTE_MSG.get_linesize()
     for i, linha in enumerate(_quebrar_linhas(texto, FONTE_MSG, LARGURA_MAX_MSG)):
-        surf = FONTE_MSG.render(linha, True, cor)
-        tela.blit(surf, surf.get_rect(midtop=(LARGURA_TELA // 2, y_topo + i * 30)))
+        surf = renderizar(FONTE_MSG, linha, cor)
+        tela.blit(surf, surf.get_rect(midtop=(LARGURA_TELA // 2, y_topo + i * altura_linha)))
+
+
+def desenhar_fundo(tela, fundo=None, clima=None):
+    if fundo:
+        tela.blit(fundo, (0, 0))
+        tela.blit(PELICULA, (0, 0))
+        if clima:
+            clima.desenhar(tela)
+    else:
+        tela.fill(cores['cinza-menu'])
 
 
 # ------------------------------------------------------------------- campos
@@ -82,7 +157,9 @@ class CampoTexto:
 
         self.rect_olho = None
         if senha:
-            self.rect_olho = pygame.Rect(self.rect.right - 108, self.rect.y + 8, 100, altura - 16)
+            largura_olho = _esc(130)
+            self.rect_olho = pygame.Rect(self.rect.right - largura_olho - _esc(8),
+                                        self.rect.y + _esc(8), largura_olho, altura - _esc(16))
 
     def limpar(self):
         self.texto = ""
@@ -141,25 +218,25 @@ class CampoTexto:
 
     # --- desenho ---
     def desenhar(self, tela):
-        rotulo = FONTE_ROTULO.render(self.rotulo, True, cores['branco'])
-        tela.blit(rotulo, (self.rect.x, self.rect.y - 28))
+        rotulo = renderizar(FONTE_ROTULO, self.rotulo, cores['branco'])
+        tela.blit(rotulo, (self.rect.x, self.rect.y - _esc(40)))
 
         if self.erro:
             borda = COR_ERRO
         elif self._esta_valido():
             borda = cores['verde-logo']
         elif self.foco:
-            borda = cores['azul-jogo']
+            borda = cores['amarelo']
         else:
             borda = COR_BORDA
 
-        pygame.draw.rect(tela, COR_FUNDO_CAMPO, self.rect, border_radius=8)
-        pygame.draw.rect(tela, borda, self.rect, 2, border_radius=8)
+        pygame.draw.rect(tela, COR_FUNDO_CAMPO, self.rect, border_radius=RAIO)
+        pygame.draw.rect(tela, borda, self.rect, ESPESSURA_BORDA, border_radius=RAIO)
 
-        x_texto = self.rect.x + 10
-        area_largura = self.rect.width - 20
+        x_texto = self.rect.x + _esc(16)
+        area_largura = self.rect.width - _esc(32)
         if self.rect_olho:
-            area_largura -= self.rect_olho.width + 10
+            area_largura -= self.rect_olho.width + _esc(10)
 
         if self.senha and not self.mostrar_senha:
             exibido = "*" * len(self.texto)
@@ -186,11 +263,13 @@ class CampoTexto:
         # cursor piscando
         if self.foco and (pygame.time.get_ticks() // 500) % 2 == 0:
             x = x_texto + largura_texto + 2
-            pygame.draw.line(tela, cores['branco'], (x, self.rect.y + 10), (x, self.rect.bottom - 10), 2)
+            margem = _esc(12)
+            pygame.draw.line(tela, cores['branco'], (x, self.rect.y + margem),
+                            (x, self.rect.bottom - margem), max(2, _esc(3)))
 
         # botão "mostrar/ocultar" da senha
         if self.rect_olho:
-            pygame.draw.rect(tela, COR_BORDA, self.rect_olho, 1, border_radius=6)
+            pygame.draw.rect(tela, COR_BORDA, self.rect_olho, 2, border_radius=RAIO)
             legenda = "Ocultar" if self.mostrar_senha else "Mostrar"
             surf = FONTE_PEQUENA.render(legenda, True, cores['branco'])
             tela.blit(surf, surf.get_rect(center=self.rect_olho.center))
@@ -200,20 +279,19 @@ class CampoTexto:
 
     def _desenhar_erro(self, tela):
         """Escreve o erro ao lado do campo, no espaço livre à direita."""
-        x = self.rect.right + 24
-        linhas = _quebrar_linhas(self.erro, FONTE_ERRO, LARGURA_TELA - x - 24)
+        x = self.rect.right + _esc(24)
+        linhas = _quebrar_linhas(self.erro, FONTE_ERRO, LARGURA_TELA - x - _esc(24))
         altura_linha = FONTE_ERRO.get_linesize()
         y = self.rect.centery - len(linhas) * altura_linha // 2
 
         for i, linha in enumerate(linhas):
-            surf = FONTE_ERRO.render(linha, True, COR_ERRO)
-            tela.blit(surf, (x, y + i * altura_linha))
+            tela.blit(renderizar(FONTE_ERRO, linha, COR_ERRO), (x, y + i * altura_linha))
 
 
 class BotaoTexto:
-    def __init__(self, texto, centro, largura=240, altura=56, cor=None):
+    def __init__(self, texto, centro, largura=_esc(280), altura=_esc(70), cor=None):
         self.texto = texto
-        self.cor = cor or cores['azul-jogo']
+        self.cor = cor or cores['verde-logo']
         self.rect = pygame.Rect(0, 0, largura, altura)
         self.rect.center = centro
 
@@ -222,8 +300,12 @@ class BotaoTexto:
         if self.rect.collidepoint(pygame.mouse.get_pos()):
             cor = tuple(min(255, c + 35) for c in cor)
 
-        pygame.draw.rect(tela, cor, self.rect, border_radius=10)
-        surf = FONTE_BOTAO.render(self.texto, True, cores['branco'])
+        # a parte escura embaixo dá o efeito de botão em relevo
+        escuro = tuple(int(c * 0.55) for c in self.cor)
+        pygame.draw.rect(tela, escuro, self.rect.move(0, SOMBRA * 2), border_radius=RAIO)
+        pygame.draw.rect(tela, cor, self.rect, border_radius=RAIO)
+
+        surf = renderizar(FONTE_BOTAO, self.texto, cores['branco'])
         tela.blit(surf, surf.get_rect(center=self.rect.center))
 
     def clicado(self, pos):
@@ -237,15 +319,16 @@ class TelaConfig:
 
     def __init__(self):
         cx = LARGURA_TELA // 2
-        self.y_inicial = int(ALTURA_TELA * 0.38)
+        largura = _esc(380)
+        self.y_titulo = 0
         self.mensagem = ""
-        self.botao_login = BotaoTexto("Entrar", (cx, 0), largura=300)
-        self.botao_cadastro = BotaoTexto("Cadastrar-se", (cx, 0), largura=300)
-        self.botao_trocar_senha = BotaoTexto("Trocar senha", (cx, 0), largura=300)
-        self.botao_trocar_usuario = BotaoTexto("Trocar usuário", (cx, 0), largura=300)
-        self.botao_apagar = BotaoTexto("Apagar conta", (cx, 0), largura=300, cor=COR_PERIGO)
-        self.botao_logout = BotaoTexto("Sair da conta", (cx, 0), largura=300)
-        self.botao_voltar = BotaoTexto("Voltar", (cx, 0), largura=300, cor=COR_BOTAO_NEUTRO)
+        self.botao_login = BotaoTexto("Entrar", (cx, 0), largura=largura)
+        self.botao_cadastro = BotaoTexto("Cadastrar-se", (cx, 0), largura=largura, cor=cores['azul-jogo'])
+        self.botao_trocar_senha = BotaoTexto("Trocar senha", (cx, 0), largura=largura, cor=cores['azul-jogo'])
+        self.botao_trocar_usuario = BotaoTexto("Trocar usuário", (cx, 0), largura=largura, cor=cores['azul-jogo'])
+        self.botao_apagar = BotaoTexto("Apagar conta", (cx, 0), largura=largura, cor=COR_PERIGO)
+        self.botao_logout = BotaoTexto("Sair da conta", (cx, 0), largura=largura, cor=COR_SAIR)
+        self.botao_voltar = BotaoTexto("Voltar", (cx, 0), largura=largura, cor=COR_BOTAO_NEUTRO)
 
     def _botoes_ativos(self, jogador):
         if jogador:
@@ -259,8 +342,12 @@ class TelaConfig:
                     ("cadastro", self.botao_cadastro),
                     ("voltar", self.botao_voltar)]
 
+        # centraliza o conjunto (título, textos e botões) no meio da tela
+        altura = _esc(301) + (len(lista) - 1) * _esc(95)
+        self.y_titulo = (ALTURA_TELA - altura) // 2 + _esc(36)
+
         for i, (_, botao) in enumerate(lista):
-            botao.rect.centery = self.y_inicial + i * 80
+            botao.rect.centery = self.y_titulo + _esc(230) + i * _esc(95)
         return lista
 
     def tratar_evento(self, evento, jogador):
@@ -273,51 +360,62 @@ class TelaConfig:
                     return acao
         return None
 
-    def desenhar(self, tela, jogador):
-        tela.fill(cores['cinza-menu'])
+    def desenhar(self, tela, jogador, clima=None):
+        desenhar_fundo(tela, imagem_bg_cadastro, clima)
+        botoes = self._botoes_ativos(jogador)
+        cx = LARGURA_TELA // 2
 
-        titulo = FONTE_MENSAGEM.render("Conta", True, cores['branco'])
-        tela.blit(titulo, titulo.get_rect(center=(LARGURA_TELA // 2, int(ALTURA_TELA * 0.15))))
+        titulo = renderizar(FONTE_TITULO_TELA, "Conta", COR_TITULO)
+        tela.blit(titulo, titulo.get_rect(center=(cx, self.y_titulo)))
 
         if jogador:
             status = f"Conectado como {jogador['usuario']}"
         else:
             status = "Você ainda não está conectado"
-        surf = FONTE_MSG.render(status, True, cores['azul-jogo'])
-        tela.blit(surf, surf.get_rect(center=(LARGURA_TELA // 2, int(ALTURA_TELA * 0.25))))
+        surf = renderizar(FONTE_MSG, status, cores['azul-jogo'])
+        tela.blit(surf, surf.get_rect(center=(cx, self.y_titulo + _esc(95))))
 
         if self.mensagem:
-            surf = FONTE_MSG.render(self.mensagem, True, cores['verde'])
-            tela.blit(surf, surf.get_rect(center=(LARGURA_TELA // 2, int(ALTURA_TELA * 0.31))))
+            surf = renderizar(FONTE_MSG, self.mensagem, cores['verde-logo'])
+            tela.blit(surf, surf.get_rect(center=(cx, self.y_titulo + _esc(150))))
 
-        for _, botao in self._botoes_ativos(jogador):
+        for _, botao in botoes:
             botao.desenhar(tela)
 
 
 class TelaFormulario:
     """Base de login, cadastro e telas de perfil: campos, Tab/Enter/Esc, mensagem e botões."""
     TITULO = ""
+    FUNDO = None
 
     def __init__(self):
         self.campos = []
         self.mensagem = ""
-        self.mensagem_cor = cores['vermelho']
+        self.mensagem_cor = COR_ERRO
         self.y_titulo = int(ALTURA_TELA * 0.10)
         self.y_mensagem = 0
         self.botao_principal = None
         self.botao_voltar = None
 
+    def _posicionar(self, quantidade_campos, espaco_titulo=ESPACO_TITULO):
+        """Centraliza título, campos e botões no meio da tela; devolve o y do primeiro campo."""
+        altura = (_esc(36) + espaco_titulo + (quantidade_campos - 1) * PASSO_CAMPO
+                    + ALTURA_CAMPO + _esc(175))
+        self.y_titulo = (ALTURA_TELA - altura) // 2 + _esc(36)
+        return self.y_titulo + espaco_titulo
+
     def _criar_rodape(self, texto_principal, cor_principal=None):
         """Posiciona mensagem e botões logo abaixo do último campo."""
         cx = LARGURA_TELA // 2
-        self.y_mensagem = self.campos[-1].rect.bottom + 14
-        y_botoes = self.y_mensagem + 95
-        self.botao_principal = BotaoTexto(texto_principal, (cx - 140, y_botoes), cor=cor_principal)
-        self.botao_voltar = BotaoTexto("Voltar", (cx + 140, y_botoes), cor=COR_BOTAO_NEUTRO)
+        afastamento = _esc(170)
+        self.y_mensagem = self.campos[-1].rect.bottom + _esc(14)
+        y_botoes = self.y_mensagem + _esc(120)
+        self.botao_principal = BotaoTexto(texto_principal, (cx - afastamento, y_botoes), cor=cor_principal)
+        self.botao_voltar = BotaoTexto("Voltar", (cx + afastamento, y_botoes), cor=COR_BOTAO_NEUTRO)
 
     def definir_mensagem(self, texto, erro=True):
         self.mensagem = texto
-        self.mensagem_cor = cores['vermelho'] if erro else cores['verde']
+        self.mensagem_cor = COR_ERRO if erro else cores['verde-logo']
 
     def marcar_erros(self, pares):
         """Recebe pares (campo, erro) e mostra cada erro ao lado do seu campo.
@@ -382,10 +480,10 @@ class TelaFormulario:
 
         return None
 
-    def desenhar(self, tela):
-        tela.fill(cores['cinza-menu'])
+    def desenhar(self, tela, clima=None):
+        desenhar_fundo(tela, self.FUNDO, clima)
 
-        titulo = FONTE_TITULO_TELA.render(self.TITULO, True, cores['branco'])
+        titulo = renderizar(FONTE_TITULO_TELA, self.TITULO, COR_TITULO)
         tela.blit(titulo, titulo.get_rect(center=(LARGURA_TELA // 2, self.y_titulo)))
 
         for campo in self.campos:
@@ -400,11 +498,12 @@ class TelaFormulario:
 
 class TelaLogin(TelaFormulario):
     TITULO = "Entrar"
+    FUNDO = imagem_bg_cadastro
 
     def __init__(self):
         super().__init__()
         x = (LARGURA_TELA - LARGURA_CAMPO) // 2
-        y0 = int(ALTURA_TELA * 0.30)
+        y0 = self._posicionar(2)
 
         self.campo_usuario = CampoTexto("Nome de usuário", x, y0,
                                         max_len=16, permitido=permitido_usuario)
@@ -431,12 +530,12 @@ class TelaLogin(TelaFormulario):
 
 class TelaCadastro(TelaFormulario):
     TITULO = "Cadastro"
+    FUNDO = imagem_bg_cadastro
 
     def __init__(self):
         super().__init__()
-        self.y_titulo = int(ALTURA_TELA * 0.08)
         x = (LARGURA_TELA - LARGURA_CAMPO) // 2
-        y0 = int(ALTURA_TELA * 0.19)
+        y0 = self._posicionar(5)
 
         self.campo_usuario = CampoTexto("Nome de usuário", x, y0,
                                         max_len=16, permitido=permitido_usuario,

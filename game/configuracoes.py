@@ -42,6 +42,11 @@ CAMINHO_BG_JOGO = './img/fundos/bg_jogo.png'
 imagem_bg_jogo = pygame.image.load(CAMINHO_BG_JOGO)
 imagem_bg_jogo = pygame.transform.scale(imagem_bg_jogo, (LARGURA_TELA, ALTURA_TELA))
 
+# caminho da imagem de fundo do cadastro
+CAMINHO_BG_CADASTRO = './img/fundos/bg_cadastro.png'
+imagem_bg_cadastro = pygame.image.load(CAMINHO_BG_CADASTRO)
+imagem_bg_cadastro = pygame.transform.scale(imagem_bg_cadastro, (LARGURA_TELA, ALTURA_TELA))
+
 CAMINHO_IMAGEM_GAMEOVER = './img/fundos/GAMEOVER.png'
 imagem_gameover = pygame.image.load(CAMINHO_IMAGEM_GAMEOVER)
 imagem_gameover = pygame.transform.scale(imagem_gameover, (LARGURA_TELA, ALTURA_TELA))

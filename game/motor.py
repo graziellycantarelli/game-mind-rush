@@ -6,6 +6,7 @@ from game.configuracoes import LARGURA_TELA, ALTURA_TELA, TITULO_JOGO, FULLSCREE
 from game.database.db import criar_tabelas, salvar_pontuacao, get_top5_pontuacao
 from game.elements.personagem import Personagem
 from game.elements.chao import GerenciadorChao
+from game.elements.clima import Clima
 from game.render import desenhar_menu, desenhar_jogo, desenhar_gameover, desenhar_ranking, rect_sair_ranking, imagem_menu, imagem_gameover, mensagem_gameover
 from game.ui.botao import botao_jogar, botao_modos, botao_config, botao_ranking, botao_sair, botao_reiniciar, botao_sair_gameover, botao_menu
 from game.ui.conta import TelaConfig, TelaLogin, TelaCadastro
@@ -32,6 +33,7 @@ class Motor:
         criar_tabelas()
 
         self.watch = pygame.time.Clock()
+        self.clima = Clima()
         self.rodando = True
         self.pontos = 0
         self.top5 = []
@@ -101,13 +103,14 @@ class Motor:
             self.watch.tick(FPS)
 
             self.capturar_eventos()
+            self.clima.atualizar()
 
             if self.estado == "menu":
-                desenhar_menu(self.tela, self.jogador)
+                desenhar_menu(self.tela, self.clima, self.jogador)
 
             elif self.estado == "jogar":
                 self.atualizar_jogo()
-                desenhar_jogo(self.tela, self.personagem, self.gerenciador_chao, self.pontos)
+                desenhar_jogo(self.tela, self.clima, self.personagem, self.gerenciador_chao, self.pontos)
 
             elif self.estado == "gameover":
                 desenhar_gameover(self.tela, imagem_gameover, mensagem_gameover)
@@ -116,10 +119,10 @@ class Motor:
                 desenhar_ranking(self.tela, self.top5)
 
             elif self.estado == "config":
-                self.tela_config.desenhar(self.tela, self.jogador)
+                self.tela_config.desenhar(self.tela, self.jogador, self.clima)
 
             elif self.estado in self.formularios:
-                self.formularios[self.estado].desenhar(self.tela)
+                self.formularios[self.estado].desenhar(self.tela, self.clima)
 
             # único update de tela por frame
             pygame.display.update()
