@@ -15,6 +15,8 @@ ESTADOS = {
 }
 
 QUANTIDADE_NUVENS = 7
+NUVENS_LEVES = 4        # no mapa dos modos só aparecem poucas nuvens, bem transparentes
+OPACIDADE_LEVE = 0.45
 QUANTIDADE_GOTAS = 260
 ALPHA_ESCURO = 160
 COR_ESCURO = (20, 30, 55)
@@ -119,7 +121,12 @@ class Clima:
             for gota in self.gotas:
                 gota.mover()
 
-    def desenhar(self, tela):
+    def desenhar(self, tela, leve=False):
+        if leve:
+            for nuvem in self.nuvens[:NUVENS_LEVES]:
+                nuvem.desenhar(tela, OPACIDADE_LEVE)
+            return
+
         nuvens_visiveis = self.valores["nuvens"] * len(self.nuvens)
         for i, nuvem in enumerate(self.nuvens):
             opacidade = max(0, min(1, nuvens_visiveis - i))

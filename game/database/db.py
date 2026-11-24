@@ -26,7 +26,8 @@ def criar_tabelas():
             email TEXT NOT NULL UNIQUE,
             senha_hash TEXT NOT NULL,
             salt TEXT NOT NULL,
-            data_nascimento TEXT NOT NULL
+            data_nascimento TEXT NOT NULL,
+            tutorial_visto INTEGER NOT NULL DEFAULT 0
         )
         """)
 
@@ -34,14 +35,20 @@ def criar_tabelas():
         CREATE TABLE IF NOT EXISTS partidas (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             pontuacao INTEGER NOT NULL,
-            jogador_id INTEGER REFERENCES jogadores(id)
+            jogador_id INTEGER REFERENCES jogadores(id),
+            moedas INTEGER NOT NULL DEFAULT 0
         )
         """)
 
-        # migração: bancos antigos não têm a coluna jogador_id
+        # migração: bancos antigos não têm as colunas jogador_id e moedas
         colunas = [c[1] for c in conn.execute("PRAGMA table_info(partidas)").fetchall()]
         if "jogador_id" not in colunas:
             conn.execute("ALTER TABLE partidas ADD COLUMN jogador_id INTEGER")
+        colunas_jogadores = [c[1] for c in conn.execute("PRAGMA table_info(jogadores)").fetchall()]
+        if "tutorial_visto" not in colunas_jogadores:
+            conn.execute("ALTER TABLE jogadores ADD COLUMN tutorial_visto INTEGER NOT NULL DEFAULT 0")
+        if "moedas" not in colunas:
+            conn.execute("ALTER TABLE partidas ADD COLUMN moedas INTEGER NOT NULL DEFAULT 0")
 
 
 # jogadores
@@ -114,20 +121,32 @@ def atualizar_usuario(jogador_id, novo_usuario):
         )
 
 
+def tutorial_visto(jogador_id):
+    with closing(_conectar()) as conn:
+        linha = conn.execute("SELECT tutorial_visto FROM jogadores WHERE id = ?", (jogador_id,)).fetchone()
+    return bool(linha and linha[0])
+
+
+def marcar_tutorial_visto(jogador_id):
+    with closing(_conectar()) as conn, conn:
+        conn.execute("UPDATE jogadores SET tutorial_visto = 1 WHERE id = ?", (jogador_id,))
+
+
 def apagar_jogador(jogador_id):
     with closing(_conectar()) as conn, conn:
+        conn.execute("DELETE FROM respostas WHERE jogador_id = ?", (jogador_id,))
         conn.execute("DELETE FROM partidas WHERE jogador_id = ?", (jogador_id,))
         conn.execute("DELETE FROM jogadores WHERE id = ?", (jogador_id,))
 
 
 # pontuação
 
-def salvar_pontuacao(jogador_id, pontuacao):
+def salvar_pontuacao(jogador_id, pontuacao, moedas=0):
     with closing(_conectar()) as conn, conn:
         # Os ? garantem que o sqlite3 trata o valor como dado, nunca como código SQL
         conn.execute(
-            "INSERT INTO partidas (pontuacao, jogador_id) VALUES (?, ?)",
-            (pontuacao, jogador_id)
+            "INSERT INTO partidas (pontuacao, jogador_id, moedas) VALUES (?, ?, ?)",
+            (pontuacao, jogador_id, moedas)
         )
 
 

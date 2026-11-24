@@ -26,17 +26,6 @@ CAMINHO_MENU = './img/fundos/MENU.png'
 imagem_menu = pygame.image.load(CAMINHO_MENU)
 imagem_menu = pygame.transform.scale(imagem_menu, (LARGURA_TELA, ALTURA_TELA))
 
-#  caminho da imagem de fundo do ranking
-CAMINHO_BG_RANK = './img/fundos/bg_ranking.png'
-imagem_bg_rank = pygame.image.load(CAMINHO_BG_RANK)
-imagem_bg_rank = pygame.transform.scale(imagem_bg_rank, (LARGURA_TELA, ALTURA_TELA))
-
-# caminho da imagem do botão de sair do ranking
-CAMINHO_SAIR_RANKING = './img/botoes/sair_ranking.png'
-imagem_sair_ranking = pygame.image.load(CAMINHO_SAIR_RANKING)
-imagem_sair_ranking = pygame.transform.scale(imagem_sair_ranking, (200, 200))
-rect_sair_ranking = imagem_sair_ranking.get_rect(topleft=(110, 20))
-
 # caminho da imagem de fundo do jogo
 CAMINHO_BG_JOGO = './img/fundos/bg_jogo.png'
 imagem_bg_jogo = pygame.image.load(CAMINHO_BG_JOGO)
@@ -53,3 +42,7 @@ imagem_gameover = pygame.transform.scale(imagem_gameover, (LARGURA_TELA, ALTURA_
 
 CAMINHO_MENSAGEM_GAMEOVER = './img/mensagem/MORREUMR.png'
 mensagem_gameover = pygame.image.load(CAMINHO_MENSAGEM_GAMEOVER)
+largura_mensagem = int(LARGURA_TELA * 0.5)
+mensagem_gameover = pygame.transform.smoothscale(
+    mensagem_gameover, (largura_mensagem, round(mensagem_gameover.get_height() * largura_mensagem / mensagem_gameover.get_width())))
+

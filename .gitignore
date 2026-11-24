@@ -4,3 +4,4 @@ __pycache__/
 .pytest_cache/
 .env
 *.db
+perguntas_geradas_*.json

@@ -5,13 +5,13 @@ import sqlite3
 from game.configuracoes import LARGURA_TELA, ALTURA_TELA
 from game.util.cores import cores
 from game.util import validacao
-from game.database import db
+from game.database import db, flashcards_db, loja_db
 from game.ui.conta import (CampoTexto, TelaFormulario, desenhar_mensagem, permitido_usuario,
                             LARGURA_CAMPO, PASSO_CAMPO, COR_PERIGO)
 
 X_CAMPOS = (LARGURA_TELA - LARGURA_CAMPO) // 2
 
-AVISO_APAGAR = "Isso apaga a conta e as pontuações para sempre."
+AVISO_APAGAR = "Isso apaga a conta, as pontuações e os flashcards para sempre."
 
 
 class TelaPerfil(TelaFormulario):
@@ -26,6 +26,7 @@ class TelaPerfil(TelaFormulario):
 
 class TelaTrocarSenha(TelaPerfil):
     TITULO = "Trocar senha"
+    ICONE = "cadeado"
 
     def __init__(self):
         super().__init__()
@@ -65,6 +66,7 @@ class TelaTrocarSenha(TelaPerfil):
 
 class TelaTrocarUsuario(TelaPerfil):
     TITULO = "Trocar usuário"
+    ICONE = "usuario"
 
     def __init__(self):
         super().__init__()
@@ -107,6 +109,7 @@ class TelaTrocarUsuario(TelaPerfil):
 
 class TelaApagarConta(TelaPerfil):
     TITULO = "Apagar conta"
+    ICONE = "cruz"
 
     def __init__(self):
         super().__init__()
@@ -125,6 +128,8 @@ class TelaApagarConta(TelaPerfil):
         if self.marcar_erros([(self.campo_senha, erro)]):
             return None
 
+        flashcards_db.apagar_todos_do_jogador(self.jogador["id"])
+        loja_db.apagar_do_jogador(self.jogador["id"])
         db.apagar_jogador(self.jogador["id"])
         return "conta_apagada"
 
