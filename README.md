@@ -28,7 +28,16 @@ Estudantes em geral e aspirantes a universitários que buscam uma forma mais din
 
 ## 🛠️ Funcionalidades a incrementar
 
+- 🐾 Pet para cada personagem: um companheiro por curso (robozinho na Computação, cachorro na Veterinária, coruja na História, passarinho com um livro em Letras) que junta moedas próximas, elimina uma alternativa errada ou absorve um golpe, e evolui conforme o jogador acerta
 - 🌟 Conquistas e personagens especiais desbloqueáveis
+- 👹 Chefes de curso: um vilão maior que só é derrotado com uma sequência de respostas certas
+- 📅 Missões diárias e sequência de dias de estudo, com recompensa em moedas
+- 🔁 Revisão espaçada completa, com intervalos que crescem a cada acerto
+- 🤝 Desafios entre colegas, com duelos e ranking de turma
+- 👩‍🏫 Painel do professor para montar bancos de perguntas e acompanhar o desempenho da turma
+- 📥 Importar e exportar flashcards (planilha e formato do Anki)
+- ♿ Opções de acessibilidade: modo para daltonismo, tamanho de fonte e controles alternativos
+- 📱 Versões para celular e navegador, e mais cursos, ensino médio (ENEM e vestibular) e outras instituições
 - 📚 Ampliar o banco de questões de cada curso
 
 ## 🎮 Controles
