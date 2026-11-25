@@ -60,7 +60,7 @@ def apagar_todos_do_jogador(jogador_id):
 
 
 def sortear(jogador_id, feitas):
-    """Devolve um card do jogador (novos primeiro, depois os mais errados) ou None se ele não tem cards."""
+    """Devolve um card do jogador."""
     with _sessao() as con:
         linhas = con.execute(
             "SELECT id, pergunta, resposta, acertos, erros FROM flashcards WHERE jogador_id = ?",

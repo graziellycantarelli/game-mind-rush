@@ -4,15 +4,15 @@ COR = (255, 200, 40)
 COR_BORDA = (190, 130, 20)
 COR_BRILHO = (255, 238, 150)
 RAIO = 22
-ESPACO = 64          # distância entre as moedas de uma formação
-ALTURA_BAIXA = 100   # formações até essa altura cabem junto de um cérebro
+ESPACO = 64
+ALTURA_BAIXA = 100
 
-# cada moeda: (posição à frente, altura do centro acima do chão)
+# cada moeda:
 FORMACOES = (
-    ((0, 80), (1, 80), (2, 80), (3, 80)),                  # linha
-    ((0, 80), (1, 150), (2, 190), (3, 150), (4, 80)),      # arco
-    ((0, 80), (1, 120), (2, 160), (3, 200)),               # escada
-    ((0, 80), (1, 170), (2, 80), (3, 170), (4, 80)),       # zigue-zague
+    ((0, 80), (1, 80), (2, 80), (3, 80)),
+    ((0, 80), (1, 150), (2, 190), (3, 150), (4, 80)),
+    ((0, 80), (1, 120), (2, 160), (3, 200)),
+    ((0, 80), (1, 170), (2, 80), (3, 170), (4, 80)),
 )
 
 

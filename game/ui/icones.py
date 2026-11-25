@@ -11,7 +11,7 @@ ICONES = {
     "seta_esquerda": ["...W...", "..WW...", ".WWWWWW", "WWWWWWW", ".WWWWWW", "..WW...", "...W..."],
     "seta_direita": ["...W...", "...WW..", "WWWWWW.", "WWWWWWW", "WWWWWW.", "...WW..", "...W..."],
     "trofeu": ["WWWWWWWWW", "W.WWWWW.W", "W.WWWWW.W", ".W.WWW.W.", "..WWWWW..", "...WWW...", "....W....",
-               "...WWW...", "..WWWWW.."],
+        "...WWW...", "..WWWWW.."],
     "coroa": ["W...W...W", "WW.WWW.WW", "WWWWWWWWW", "WWWWWWWWW", ".WWWWWWW."],
     "usuario": ["..WWW..", ".WWWWW.", ".WWWWW.", "..WWW..", ".WWWWW.", "WWWWWWW", "WWWWWWW"],
     "email": ["WWWWWWWWW", "WW.....WW", "W.W...W.W", "W..W.W..W", "W...W...W", "W.......W", "WWWWWWWWW"],

@@ -148,13 +148,13 @@ class Chao:
 
 
 class Plataforma(Chao):
-    """Plataforma pequena que flutua: o personagem só pousa em cima dela e a atravessa por baixo e pelos lados."""
+    """Plataforma pequena que flutua"""
     ALTURA = 56
-    LARGURA_LIVRE = (220, 320)     # só moedas ou cérebro
-    LARGURA_COM_PERIGO = (340, 440)   # com vilão ou obstáculo
-    ELEVACAO = (195, 225)          # altura do topo da plataforma acima do bloco de baixo
+    LARGURA_LIVRE = (220, 320)
+    LARGURA_COM_PERIGO = (340, 440)
+    ELEVACAO = (195, 225)
     RECUO_INICIO = 80
-    RECUO_FIM = 260                # sobra de chão atrás, para o personagem cair de volta nele
+    RECUO_FIM = 260
     TOPO_MINIMO = 150
     CHANCE = 55
     CHANCE_MAXIMA = 75
@@ -172,7 +172,6 @@ class Plataforma(Chao):
 
     @staticmethod
     def _montar_flutuante(largura, altura, tile):
-        """O mesmo tijolo do chão, com brilho no topo, sombra embaixo e contorno escuro."""
         imagem = Chao._montar_imagem(largura, altura, tile)
         cor = pygame.transform.average_color(tile)[:3]
         pygame.draw.rect(imagem, tuple(min(255, c + 60) for c in cor), (0, 0, largura, 6))
@@ -251,7 +250,7 @@ class GerenciadorChao:
         y = self.altura_tela - altura_sorteada
 
         novo_chao = Chao(x, y, largura_sorteada, altura_sorteada, self.velocidade,
-                         self.imagem_tile, self.imagens_obstaculo)
+                        self.imagem_tile, self.imagens_obstaculo)
         self.lista_chaos.append(novo_chao)
 
         # sorteio (em %): obstáculo, vilão ou plataforma vazia
@@ -318,7 +317,6 @@ class GerenciadorChao:
         self.plataformas.append(plataforma)
 
     def coletar_moedas(self, hitbox):
-        """Remove as moedas tocadas pelo personagem e devolve quantas foram."""
         coletadas = 0
         for chao in self.lista_chaos + self.plataformas:
             tocadas = [m for m in chao.moedas if hitbox.colliderect(m.rect)]
@@ -327,7 +325,6 @@ class GerenciadorChao:
         return coletadas
 
     def coletar_cerebro(self, hitbox):
-        """Remove o cérebro tocado pelo personagem e avisa se algum foi coletado."""
         for chao in self.lista_chaos + self.plataformas:
             if chao.cerebro is not None and hitbox.colliderect(chao.cerebro.rect):
                 chao.cerebro = None
@@ -335,7 +332,6 @@ class GerenciadorChao:
         return False
 
     def atualizar(self):
-        # passo 1: move cada bloco de chão para a esquerda
         if GerenciadorChao.DEBUG_MEDIDAS:
             antes = [(c.rect.x, c.rect.width) for c in self.lista_chaos]
 
@@ -349,8 +345,6 @@ class GerenciadorChao:
         if GerenciadorChao.DEBUG_MEDIDAS:
             self._conferir_movimento(antes)
 
-        # passo 2: separa os blocos que ainda estão visíveis,
-        # e conta quantos saíram (usado para pontuação)
         chaos_visiveis = []
         quantidade_removida = 0
 
@@ -362,13 +356,10 @@ class GerenciadorChao:
 
         self.lista_chaos = chaos_visiveis
 
-        # passo 3: se não sobrou nenhum bloco, cria um novo do zero
         if len(self.lista_chaos) == 0:
             self.criar_chao(self.largura_tela)
             return quantidade_removida
 
-        # passo 4: se o último bloco já apareceu por completo na tela,
-        # cria o próximo bloco depois dele, com um espaço aleatório
         ultimo_chao = self.lista_chaos[-1]
 
         if ultimo_chao.rect.right <= self.largura_tela:
@@ -389,7 +380,6 @@ class GerenciadorChao:
 
     @staticmethod
     def _registrar(mensagem):
-        """Escreve no terminal e no arquivo debug_chao.log (na pasta de onde o jogo foi iniciado)."""
         linha = f"[frame {GerenciadorChao._frame_debug}] {mensagem}"
         print("[DEBUG]", linha)
         try:
@@ -415,7 +405,6 @@ class GerenciadorChao:
                 self._registrar(f"vão entre blocos {i} e {i + 1} mudou: {vao_antes} -> {vao_depois}")
 
     def _desenhar_medidas(self, tela):
-        """Mostra L = largura real de cada bloco e vão = distância até o próximo bloco (em pixels)."""
         if GerenciadorChao._fonte_debug is None:
             GerenciadorChao._fonte_debug = pygame.font.SysFont('arial', 22, bold=True)
         fonte = GerenciadorChao._fonte_debug

@@ -42,7 +42,6 @@ def validar_confirmacao(senha, confirmacao):
 
 
 def validar_data_nascimento(texto):
-    """Retorna (erro, data_iso). Se houver erro, data_iso é None."""
     if len(texto) != 10:
         return "Data de nascimento inválida. Use o formato DD/MM/AAAA.", None
 

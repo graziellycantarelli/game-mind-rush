@@ -5,7 +5,7 @@ from game.elements.vidas import Vidas
 from game.ui.estilo import COR_CREME, COR_DICA, COR_TITULO, CORES_ALTERNATIVAS, desenhar_placa
 from game.ui.fontes import renderizar
 from game.ui.pergunta import (FONTE_ALTERNATIVA, FONTE_AVISO, FONTE_TITULO, BRANCO, MARGEM, PREENCHIMENTO,
-                              ESPACO, FOLGA_LINHA, RAIO_NUMERO, TEMPO_LIMITE, quebrar_linhas)
+                            ESPACO, FOLGA_LINHA, RAIO_NUMERO, TEMPO_LIMITE, quebrar_linhas)
 
 PASSOS = (
     "Aperte ESPAÇO ou a seta para cima para pular obstáculos, vilões e buracos.",
@@ -46,7 +46,6 @@ class TelaTutorial:
         self.aberta_em = pygame.time.get_ticks()
 
     def tratar_evento(self, evento):
-        """True quando o jogador quer começar (clique ou tecla, depois de um instante)."""
         if pygame.time.get_ticks() - self.aberta_em < ATRASO_ENTRADA_MS:
             return False
         return evento.type in (pygame.MOUSEBUTTONDOWN, pygame.KEYDOWN)
@@ -66,7 +65,7 @@ class TelaTutorial:
             y_texto = self.painel.y + y + (altura - len(linhas) * self.alt_linha) // 2
             for linha in linhas:
                 tela.blit(FONTE_ALTERNATIVA.render(linha, True, COR_CREME),
-                          (self.painel.x + MARGEM + self.recuo, y_texto))
+                        (self.painel.x + MARGEM + self.recuo, y_texto))
                 y_texto += self.alt_linha
 
         aviso = FONTE_AVISO.render("Clique ou aperte qualquer tecla para começar", True, COR_DICA)

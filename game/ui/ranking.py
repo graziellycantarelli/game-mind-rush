@@ -19,7 +19,7 @@ POSICOES = 5
 PAGINAS = ("geral", *NOMES_MODOS)
 NOMES = {"geral": "GERAL", **{modo: nome.upper() for modo, nome in NOMES_MODOS.items()}}
 PALETA_PAGINA = {"geral": "dourado", "flashcard": "azul", "computacao": "roxo",
-                 "historia": "bronze", "medvet": "verde", "letras": "vermelho"}
+                "historia": "bronze", "medvet": "verde", "letras": "vermelho"}
 PALETAS_MEDALHA = ("dourado", "prata", "bronze", "azul", "roxo")
 
 ALTURA_CARTAO = int(ALTURA_TELA * 0.62)
@@ -89,7 +89,7 @@ class TelaRanking:
         self.seta_direita = BotaoSeta("direita", centro=(LARGURA_TELA - esc(70), CENTRO_Y))
 
     def abrir(self, dados):
-        """`dados` guarda as 5 melhores pontuações de cada página: "geral" e um item por modo."""
+        """`dados` guarda as 5 melhores pontuações de cada página."""
         self.cartoes = {pagina: _montar_cartao(pagina, dados.get(pagina) or []) for pagina in PAGINAS}
         self.indice = 0
         self.posicao = 0.0

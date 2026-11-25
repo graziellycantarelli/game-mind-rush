@@ -42,4 +42,4 @@ class BotoesJogo:
                 metade = 3 * UNIDADE_ICONE
                 for desvio, cor in ((esc(3), paleta[0]), (0, COR_DESLIGADO)):
                     pygame.draw.line(tela, cor, (centro[0] - metade + desvio, centro[1] - metade + desvio),
-                                     (centro[0] + metade + desvio, centro[1] + metade + desvio), esc(8))
+                                    (centro[0] + metade + desvio, centro[1] + metade + desvio), esc(8))

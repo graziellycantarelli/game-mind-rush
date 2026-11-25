@@ -145,7 +145,6 @@ class TelaLoja:
         return None
 
     def _retrato(self, item):
-        """Cenário da skin recortado para caber no retrato do cartão."""
         if item["id"] not in self.retratos:
             largura, altura = TAMANHO_RETRATO
             retrato = pygame.Surface(TAMANHO_RETRATO)
@@ -222,7 +221,7 @@ class TelaLoja:
         for n in range(self.estrelas[item["id"]]):
             desenhar_icone(tela, "estrela", (retrato.x + round(esc(26) * escala) + n * round(esc(34) * escala),
                                              retrato.y + round(esc(26) * escala)),
-                           unidade_estrela, COR_MOEDA, PALETAS["marinho"][0])
+                        unidade_estrela, COR_MOEDA, PALETAS["marinho"][0])
         self._desenhar_preco(tela, retrato, item["preco"], escala)
 
         modo = _ajustar(renderizar(FONTE_MODO, NOMES_MODOS[item["modo"]], paleta[3], paleta[0]), escala, w - 2 * pad)

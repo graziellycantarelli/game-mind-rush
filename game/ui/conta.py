@@ -15,8 +15,8 @@ from game.ui.icones import desenhar_icone
 
 LARGURA_CAMPO = _esc(600)
 ALTURA_CAMPO = _esc(64)
-PASSO_CAMPO = _esc(112)          # distância vertical entre um campo e o próximo
-ESPACO_TITULO = _esc(130)        # do centro do título ao topo do primeiro campo
+PASSO_CAMPO = _esc(112)          
+ESPACO_TITULO = _esc(130)
 LARGURA_MAX_MSG = LARGURA_CAMPO + _esc(200)
 
 COR_PLACEHOLDER = (160, 135, 105)
@@ -40,7 +40,7 @@ FONTE_BOTAO = FontePixel(34)
 FONTE_PEQUENA = arial(22)
 
 
-# ------------------------------------------------------------------ helpers
+# helpers
 
 def permitido_usuario(char):
     return char.isascii() and (char.isalnum() or char == "_")
@@ -89,7 +89,7 @@ def desenhar_cabecalho(tela, titulo, icone, centro_x, centro_y, largura_maxima):
     """Faixa dourada com o título e um ícone de cada lado, sobre a borda de cima do painel."""
     paleta = PALETAS["dourado"]
     fonte = next((f for f in FONTES_TITULO_TELA if f.size(titulo.upper())[0] + _esc(230) <= largura_maxima),
-                 FONTES_TITULO_TELA[-1])
+                FONTES_TITULO_TELA[-1])
     texto = renderizar(fonte, titulo.upper(), BRANCO, paleta[0])
     faixa = pygame.Rect(0, 0, texto.get_width() + _esc(230), _esc(120))
     faixa.center = (centro_x, centro_y)
@@ -107,7 +107,7 @@ def _icone_do_rotulo(rotulo):
     return None
 
 
-# ------------------------------------------------------------------- campos
+# campos
 
 class CampoTexto:
     """Campo de texto com cursor, seleção (teclado, arrastar e duplo clique) e edição no meio do texto."""
@@ -253,7 +253,7 @@ class CampoTexto:
             self.erro = ""
             self._inserir(evento.unicode)
 
-    # --- posição do texto na tela ---
+    # posição do texto na tela
     def _exibido(self):
         return "*" * len(self._texto) if self.senha and not self.mostrar_senha else self._texto
 
@@ -261,7 +261,6 @@ class CampoTexto:
         return FONTE_CAMPO.size(self._exibido()[:indice])[0]
 
     def _indice_em(self, x):
-        """Índice do caractere mais próximo de x, em pixels a partir do começo do texto."""
         exibido = self._exibido()
         for i in range(len(exibido)):
             meio = (FONTE_CAMPO.size(exibido[:i])[0] + FONTE_CAMPO.size(exibido[:i + 1])[0]) / 2
@@ -275,7 +274,7 @@ class CampoTexto:
             largura -= self.rect_olho.width + _esc(10)
         return pygame.Rect(self.rect.x + _esc(16), self.rect.y, largura, self.rect.height)
 
-    # --- eventos ---
+    # eventos
     def tratar_evento(self, evento):
         if evento.type == pygame.MOUSEBUTTONDOWN and evento.button == 1:
             if self.rect_olho and self.rect_olho.collidepoint(evento.pos):
@@ -316,7 +315,7 @@ class CampoTexto:
         tela.blit(renderizar(FONTE_ROTULO, self.rotulo, COR_CREME), (x_rotulo, y_rotulo))
         if valido:
             desenhar_icone(tela, "check", (self.rect.right - _esc(16), y_rotulo + _esc(17)), _esc(3),
-                           cores['verde-logo'], COR_MADEIRA_ESCURA)
+                        cores['verde-logo'], COR_MADEIRA_ESCURA)
 
         if self.erro:
             borda = COR_ERRO
@@ -360,7 +359,6 @@ class CampoTexto:
                             (x, self.rect.bottom - margem), max(2, _esc(3)))
         tela.set_clip(None)
 
-        # botão "mostrar/ocultar" da senha
         if self.rect_olho:
             paleta = PALETAS["verde" if self.rect_olho.collidepoint(pygame.mouse.get_pos()) else "azul"]
             desenhar_botao_pixel(tela, self.rect_olho, paleta, _esc(3))
@@ -372,7 +370,6 @@ class CampoTexto:
             self._desenhar_erro(tela)
 
     def _desenhar_erro(self, tela):
-        """Balão com o erro, ao lado do campo, no espaço livre à direita."""
         folga = _esc(12)
         x = self.rect.right + _esc(40)
         linhas = _quebrar_linhas(self.erro, FONTE_ERRO, LARGURA_TELA - x - _esc(60))
@@ -398,7 +395,7 @@ def _paleta_do_botao(cor):
 
 
 class BotaoTexto:
-    """Botão pixelado: azul vira verde quando o mouse passa; os demais só clareiam."""
+    """Botão pixelado: azul vira verde quando o mouse passa os demais só clareiam."""
 
     def __init__(self, texto, centro, largura=_esc(280), altura=_esc(70), cor=None, fonte=None):
         self.texto = texto
@@ -421,7 +418,7 @@ class BotaoTexto:
         return self.rect.collidepoint(pos)
 
 
-# ------------------------------------------------------------------- telas
+# telas
 
 class TelaConfig:
     """Menu de conta: entrar, cadastrar-se, gerenciar a conta, sair e voltar."""

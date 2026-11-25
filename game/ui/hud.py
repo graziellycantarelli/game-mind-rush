@@ -47,7 +47,7 @@ def _desenhar_ativo(tela, powerups, chave, powerup, x):
     detalhe = "ativo" if powerup["duracao"] is None else f"{math.ceil(powerups.restante[chave] / FPS)}s"
     tela.blit(FONTE_SLOT.render(powerup["nome"], True, cor), (rect.x + PREENCHIMENTO, rect.y + PREENCHIMENTO))
     tela.blit(FONTE_DETALHE.render(detalhe, True, cor),
-              (rect.x + PREENCHIMENTO, rect.y + PREENCHIMENTO + FONTE_SLOT.get_linesize()))
+            (rect.x + PREENCHIMENTO, rect.y + PREENCHIMENTO + FONTE_SLOT.get_linesize()))
 
 
 def _desenhar_combo(tela, multiplicador):

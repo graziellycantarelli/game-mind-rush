@@ -40,7 +40,14 @@ def criar_tabelas():
         )
         """)
 
-        # migração: bancos antigos não têm as colunas jogador_id e moedas
+        conn.execute("""
+        CREATE TABLE IF NOT EXISTS tutoriais_vistos (
+            jogador_id INTEGER NOT NULL REFERENCES jogadores(id),
+            modo TEXT NOT NULL,
+            PRIMARY KEY (jogador_id, modo)
+        )
+        """)
+
         colunas = [c[1] for c in conn.execute("PRAGMA table_info(partidas)").fetchall()]
         if "jogador_id" not in colunas:
             conn.execute("ALTER TABLE partidas ADD COLUMN jogador_id INTEGER")
@@ -50,11 +57,9 @@ def criar_tabelas():
         if "moedas" not in colunas:
             conn.execute("ALTER TABLE partidas ADD COLUMN moedas INTEGER NOT NULL DEFAULT 0")
 
-
 # jogadores
 
 def usuario_existe(usuario, ignorar_id=0):
-    """ignorar_id evita que o próprio jogador conte como 'já existe' ao trocar de nome."""
     with closing(_conectar()) as conn:
         linha = conn.execute(
             "SELECT 1 FROM jogadores WHERE usuario = ? COLLATE NOCASE AND id != ?",
@@ -85,7 +90,6 @@ def inserir_jogador(usuario, email, senha, data_nascimento_iso):
 
 
 def autenticar(usuario, senha):
-    """Retorna {'id', 'usuario'} se usuário e senha batem, senão None."""
     with closing(_conectar()) as conn:
         linha = conn.execute(
             "SELECT id, usuario, senha_hash, salt FROM jogadores "
@@ -121,21 +125,27 @@ def atualizar_usuario(jogador_id, novo_usuario):
         )
 
 
-def tutorial_visto(jogador_id):
+def tutorial_visto(jogador_id, modo):
     with closing(_conectar()) as conn:
-        linha = conn.execute("SELECT tutorial_visto FROM jogadores WHERE id = ?", (jogador_id,)).fetchone()
-    return bool(linha and linha[0])
+        linha = conn.execute(
+            "SELECT 1 FROM tutoriais_vistos WHERE jogador_id = ? AND modo = ?",
+            (jogador_id, modo)
+        ).fetchone()
+    return linha is not None
 
 
-def marcar_tutorial_visto(jogador_id):
+def marcar_tutorial_visto(jogador_id, modo):
     with closing(_conectar()) as conn, conn:
-        conn.execute("UPDATE jogadores SET tutorial_visto = 1 WHERE id = ?", (jogador_id,))
-
+        conn.execute(
+            "INSERT OR IGNORE INTO tutoriais_vistos (jogador_id, modo) VALUES (?, ?)",
+            (jogador_id, modo)
+        )
 
 def apagar_jogador(jogador_id):
     with closing(_conectar()) as conn, conn:
         conn.execute("DELETE FROM respostas WHERE jogador_id = ?", (jogador_id,))
         conn.execute("DELETE FROM partidas WHERE jogador_id = ?", (jogador_id,))
+        conn.execute("DELETE FROM tutoriais_vistos WHERE jogador_id = ?", (jogador_id,))
         conn.execute("DELETE FROM jogadores WHERE id = ?", (jogador_id,))
 
 
@@ -143,7 +153,6 @@ def apagar_jogador(jogador_id):
 
 def salvar_pontuacao(jogador_id, pontuacao, moedas=0):
     with closing(_conectar()) as conn, conn:
-        # Os ? garantem que o sqlite3 trata o valor como dado, nunca como código SQL
         conn.execute(
             "INSERT INTO partidas (pontuacao, jogador_id, moedas) VALUES (?, ?, ?)",
             (pontuacao, jogador_id, moedas)
@@ -151,7 +160,6 @@ def salvar_pontuacao(jogador_id, pontuacao, moedas=0):
 
 
 def get_top5_pontuacao(jogador_id):
-    """Top 5 pontuações apenas do jogador informado."""
     with closing(_conectar()) as conn:
         linhas = conn.execute(
             "SELECT pontuacao FROM partidas WHERE jogador_id = ? "

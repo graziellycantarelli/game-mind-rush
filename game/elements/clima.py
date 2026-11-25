@@ -5,7 +5,7 @@ from game.configuracoes import LARGURA_TELA, ALTURA_TELA
 
 SEQUENCIA = ["sol", "nublado", "chuva", "nublado"]
 SEGUNDOS_POR_CLIMA = 20
-VELOCIDADE_TRANSICAO = 0.004   # por frame: leva uns 4 segundos para trocar de clima
+VELOCIDADE_TRANSICAO = 0.004   
 
 # nuvens: quantas aparecem | escuro: o quanto a tela escurece | chuva: quantidade de gotas
 ESTADOS = {
@@ -15,7 +15,7 @@ ESTADOS = {
 }
 
 QUANTIDADE_NUVENS = 7
-NUVENS_LEVES = 4        # no mapa dos modos só aparecem poucas nuvens, bem transparentes
+NUVENS_LEVES = 4
 OPACIDADE_LEVE = 0.45
 QUANTIDADE_GOTAS = 260
 ALPHA_ESCURO = 160
@@ -24,8 +24,8 @@ COR_GOTA = (170, 200, 235)
 
 COR_NUVEM = (255, 255, 255)
 COR_SOMBRA_NUVEM = (200, 210, 225)
-TAMANHO_PIXEL = max(4, LARGURA_TELA // 240)   # tamanho de cada "pixel" da nuvem na tela
-FAIXA_Y_NUVEM = (0.0, 0.14)                   # altura em que as nuvens nascem (fração da tela)
+TAMANHO_PIXEL = max(4, LARGURA_TELA // 240)
+FAIXA_Y_NUVEM = (0.0, 0.14)
 FORMA_NUVEM = ((0.22, 0.65, 0.17), (0.42, 0.50, 0.22), (0.65, 0.55, 0.20),
                 (0.82, 0.70, 0.14), (0.50, 0.70, 0.15))
 
@@ -109,7 +109,6 @@ class Clima:
             self.indice = (self.indice + 1) % len(SEQUENCIA)
             self.inicio = agora
 
-        # cada valor anda um pouquinho por frame em direção ao do clima atual
         for chave, alvo in ESTADOS[self.nome].items():
             passo = max(-VELOCIDADE_TRANSICAO, min(VELOCIDADE_TRANSICAO, alvo - self.valores[chave]))
             self.valores[chave] += passo

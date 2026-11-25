@@ -18,7 +18,7 @@ ESPACO = 15
 LIMITE_PERGUNTA = 160
 LIMITE_RESPOSTA = 100
 MINIMO_PARA_JOGAR = 1
-ATRASO_ENTRADA_MS = 300   # evita responder sem querer ao abrir
+ATRASO_ENTRADA_MS = 300   
 ESPACO_ROTULO = esc(40)
 FAIXA_ITEM = 10
 
@@ -58,7 +58,7 @@ class CampoLinhas:
 
     def desenhar(self, tela, fonte, focado):
         desenhar_bloco_pixel(tela, self.rect, COR_PAPEL, CORES_ALTERNATIVAS[0] if focado else COR_MADEIRA_ESCURA,
-                             canto=esc(4), espessura=esc(4), sombra=0)
+                            canto=esc(4), espessura=esc(4), sombra=0)
 
         cursor = "|" if focado and (pygame.time.get_ticks() // 500) % 2 == 0 else ""
         largura = self.rect.width - 2 * PREENCHIMENTO
@@ -91,7 +91,7 @@ class TelaFlashcards:
         altura_painel = int(ALTURA_TELA * 0.96)
         self.painel = pygame.Rect((LARGURA_TELA - largura_painel) // 2,
                                   (ALTURA_TELA - altura_painel) // 2,
-                                  largura_painel, altura_painel)
+                                largura_painel, altura_painel)
 
         x0 = self.painel.x + MARGEM
         y_conteudo = self.painel.y + MARGEM + self.fonte_titulo.get_linesize() + ESPACO
@@ -187,7 +187,7 @@ class TelaFlashcards:
 
     def _rect_item(self, posicao):
         return pygame.Rect(self.lista.x, self.lista.y + posicao * self.alt_item,
-                           self.lista.width, self.alt_item - 4)
+                        self.lista.width, self.alt_item - 4)
 
     def _clique(self, pos):
         if self.campo_pergunta.rect.collidepoint(pos):
@@ -249,7 +249,7 @@ class TelaFlashcards:
             cor = COR_SUCESSO_TEXTO if self.mensagem_ok else COR_ERRO_TEXTO
             largura = self.painel.right - MARGEM - self.pos_mensagem[0]
             tela.blit(renderizar(self.fonte, _cortar(self.mensagem, self.fonte, largura), cor),
-                      self.pos_mensagem)
+                    self.pos_mensagem)
 
         pode_jogar = len(self.cartas) >= MINIMO_PARA_JOGAR
         _desenhar_botao(tela, self.fonte, self.botao_adicionar, "Adicionar", COR_CERTA)
@@ -263,7 +263,7 @@ class TelaFlashcards:
 
         if not self.cartas:
             tela.blit(self.fonte.render("Nenhum card ainda.", True, COR_NEUTRA),
-                      (self.lista.x + PREENCHIMENTO, self.lista.y + PREENCHIMENTO))
+                    (self.lista.x + PREENCHIMENTO, self.lista.y + PREENCHIMENTO))
             return
 
         largura_texto = self.lista.width - 2 * PREENCHIMENTO - FAIXA_ITEM
@@ -278,7 +278,7 @@ class TelaFlashcards:
                 pygame.draw.rect(tela, cor, (rect.x, rect.y, FAIXA_ITEM, rect.height), border_radius=4)
             texto = _cortar(carta["pergunta"], self.fonte, largura_texto)
             tela.blit(self.fonte.render(texto, True, BRANCO if selecionada else COR_TINTA),
-                      (rect.x + FAIXA_ITEM + PREENCHIMENTO, rect.y + 5))
+                    (rect.x + FAIXA_ITEM + PREENCHIMENTO, rect.y + 5))
 
 
 class TelaCarta:
@@ -321,11 +321,11 @@ class TelaCarta:
 
         self.painel = pygame.Rect((LARGURA_TELA - largura_painel) // 2,
                                   (ALTURA_TELA - altura_painel) // 2,
-                                  largura_painel, altura_painel)
+                                largura_painel, altura_painel)
         self.caixa = caixa.move(self.painel.topleft)
         self.faixa = faixa.move(self.painel.topleft)
         self.campo.rect = pygame.Rect(self.painel.x + MARGEM, self.painel.y + y_campo,
-                                      largura_texto, ALTURA_CAMPO)
+                                    largura_texto, ALTURA_CAMPO)
 
     def tratar_evento(self, evento):
         """Devolve "acertou" ou "errou" depois que o jogador responde e continua."""

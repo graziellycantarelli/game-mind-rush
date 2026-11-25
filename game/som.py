@@ -9,7 +9,6 @@ VOLUME_MUSICA = 0.35
 
 
 class Som:
-    """Efeitos e música; o que não tiver arquivo na pasta audio simplesmente não toca."""
 
     def __init__(self):
         self.efeitos_ligados = True
@@ -32,7 +31,6 @@ class Som:
             self.efeitos[nome].play()
 
     def musica(self, nome):
-        """Toca em repetição; pedir a mesma música de novo não reinicia."""
         if nome == self.musica_atual or not pygame.mixer.get_init():
             return
         self.musica_atual = nome
@@ -56,7 +54,6 @@ class Som:
         self._ajustar_volume_musica()
 
     def alternar_tudo(self):
-        """Se algo estiver tocando, silencia tudo; se não, liga tudo."""
         ligar = not (self.efeitos_ligados and self.musica_ligada)
         self.efeitos_ligados = self.musica_ligada = ligar
         self._ajustar_volume_musica()

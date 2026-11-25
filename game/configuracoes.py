@@ -3,7 +3,7 @@ import pygame
 pygame.init()
 pygame.font.init()
 
-# --- Configurações de tela ---
+# Configurações de tela
 FULLSCREEN = True
 
 info_tela = pygame.display.Info()

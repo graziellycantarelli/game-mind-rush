@@ -24,7 +24,7 @@ def _deslocamento(forca, frames):
 
 
 class Corredor:
-    """Personagem que corre sozinho, só de enfeite, pulando de plataforma em plataforma."""
+    """Personagem que corre sozinho, só de enfeite."""
 
     def __init__(self, personagem, largura_tela):
         self.personagem = personagem
@@ -40,7 +40,6 @@ class Corredor:
         self._calcular_pulos()
 
     def _calcular_pulos(self):
-        """Para cada plataforma mais alta que a anterior: onde começar o pulo e com que força."""
         folga = 0.02 * ALTURA_TELA
         self.pulos = []
         for (_, y_antes), (x, y) in zip(self.bordas, self.bordas[1:]):
@@ -51,7 +50,6 @@ class Corredor:
             frames = 1
             while _deslocamento(forca, frames) > -subida:
                 frames += 1
-            # começa um quadro antes, para já estar acima da borda quando chegar nela
             self.pulos.append((x, forca, VELOCIDADE * (frames + 1)))
 
     def _chao_em(self, x):

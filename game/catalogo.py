@@ -2,9 +2,7 @@ import os
 
 PASTA = "./img/skins"
 
-# duas skins raras por modo, uma de 50 e outra de 100 moedas
-# personagem: img/skins/<modo>/skin<n>_1.png a _3.png | cenário que vem junto: img/skins/<modo>/fundo_skin<n>.png
-# skins sem as imagens do personagem não aparecem na loja
+
 ITENS = [
     {"id": "flashcard_1", "modo": "flashcard", "nome": "Estudante Raro", "preco": 50},
     {"id": "flashcard_2", "modo": "flashcard", "nome": "Estudante Lendário", "preco": 100},

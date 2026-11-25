@@ -4,12 +4,11 @@ from game.configuracoes import ALTURA_TELA
 from game.util.cores import cores
 
 CAMINHO_FONTE = './fontes/aseprite.ttf'
-FONTE_TEM_ACENTOS = False   # mude para True se trocar por uma fonte pixel que tenha acentos
+FONTE_TEM_ACENTOS = False   
 ESCALA = ALTURA_TELA / 1080
 
 
 def esc(valor):
-    """Escala uma medida pensada para 1080p para a altura da tela atual."""
     return max(1, int(valor * ESCALA))
 
 
@@ -21,7 +20,6 @@ def arial(tamanho):
 
 
 class FontePixel:
-    """Fonte pixel do jogo; as letras com acento saem da Arial, que garante que apareçam."""
 
     def __init__(self, tamanho):
         self.principal = pygame.font.Font(CAMINHO_FONTE, esc(tamanho))
@@ -53,7 +51,6 @@ class FontePixel:
 
 
 def renderizar(fonte, texto, cor, cor_sombra=None):
-    """Texto com sombra, como os textos do jogo."""
     frente = fonte.render(texto, True, cor)
     sombra = fonte.render(texto, True, cor_sombra or cores['preto'])
 

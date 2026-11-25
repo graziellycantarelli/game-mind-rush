@@ -1,10 +1,4 @@
-"""Gera perguntas com IA para revisão manual e importa as aprovadas no banco.
-
-python -m tools.gerar_perguntas gerar historia 20
-(revise perguntas_geradas_historia.json e marque "aprovada": true nas corretas)
-python -m tools.gerar_perguntas importar perguntas_geradas_historia.json
-
-Precisa de: pip install anthropic, e da variável de ambiente ANTHROPIC_API_KEY.
+"""Gera perguntas com IA para revisão manual e importa as aprovadas no banco..
 """
 
 import json

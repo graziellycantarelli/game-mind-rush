@@ -30,7 +30,6 @@ class Botao:
 
 
 def centralizar_em_linha(lista_botoes, y, espaco=40):
-    """Fileira horizontal centralizada como grupo, com espaçamento igual entre os botões."""
     largura_total = sum(botao.rect.width for botao in lista_botoes)
     largura_total += espaco * (len(lista_botoes) - 1)
 
@@ -43,7 +42,6 @@ def centralizar_em_linha(lista_botoes, y, espaco=40):
 
 
 def organizar_em_colunas(colunas, y_base, espaco_x=40, espaco_y=20):
-    """Cada coluna é uma lista de botões empilhados; o grupo fica centralizado e termina em y_base."""
     larguras = [max(botao.rect.width for botao in coluna) for coluna in colunas]
     x_atual = (LARGURA_TELA - sum(larguras) - espaco_x * (len(colunas) - 1)) // 2
 
@@ -81,9 +79,9 @@ botao_menu = _botao("MENU", LARGURA_BOTAO_GAMEOVER)
 
 organizar_em_colunas(
     [[botao_jogar, botao_modos],
-     [botao_flashcards, botao_loja],
-     [botao_ranking, botao_estatisticas],
-     [botao_config, botao_sair]],
+    [botao_flashcards, botao_loja],
+    [botao_ranking, botao_estatisticas],
+    [botao_config, botao_sair]],
     y_base=int(ALTURA_TELA * 0.97),
     espaco_x=int(LARGURA_TELA * 0.02),
     espaco_y=int(ALTURA_TELA * 0.02)

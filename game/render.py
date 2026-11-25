@@ -1,5 +1,4 @@
 # Arquivo responsável por desenhar e renderizar as telas do jogo
-# (o pygame.display.update() é chamado uma única vez por frame, no motor.py)
 
 import pygame
 
@@ -9,7 +8,7 @@ from game.ui.logo import logo_menu
 from game.configuracoes import (LARGURA_TELA, ALTURA_TELA, FONTE_TITULO, FONTE_PONTOS, FONTE_MENSAGEM, imagem_menu,
                                 mensagem_gameover, imagem_gameover)
 from game.ui.botao import (botao_jogar, botao_modos, botao_config, botao_ranking, botao_sair, botao_reiniciar,
-                           botao_sair_gameover, botao_menu, botao_flashcards, botao_loja, botao_estatisticas)
+                        botao_sair_gameover, botao_menu, botao_flashcards, botao_loja, botao_estatisticas)
 
 def desenhar_menu(tela, clima, jogador, corredor):
     tela.blit(imagem_menu, (0, 0))

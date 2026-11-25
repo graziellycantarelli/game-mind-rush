@@ -17,7 +17,7 @@ FONTE_TITULO = FontePixel(36)
 
 BRANCO = (255, 255, 255)
 TECLAS = (pygame.K_1, pygame.K_2, pygame.K_3, pygame.K_4)
-TEMPO_LIMITE = 20   # segundos
+TEMPO_LIMITE = 20   
 TEMPO_ESGOTADO = -1
 
 MARGEM = esc(30)
@@ -62,7 +62,7 @@ class TelaPergunta:
         self._montar_layout()
 
     def atualizar(self):
-        """Conta o tempo; quando acaba, a pergunta vale como errada."""
+        """Conta o tempo quando acaba, a pergunta vale como errada."""
         if self.escolhida is not None:
             return
         self.tempo = max(0, TEMPO_LIMITE - (pygame.time.get_ticks() - self.aberta_em) / 1000)

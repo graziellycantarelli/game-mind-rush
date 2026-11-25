@@ -20,7 +20,7 @@ from game.elements.corredor import Corredor
 from game.som import Som
 from game.render import carregar_fundo, desenhar_menu, desenhar_jogo, desenhar_gameover, imagem_menu, imagem_gameover, mensagem_gameover
 from game.ui.botao import (botao_jogar, botao_modos, botao_config, botao_ranking, botao_sair, botao_reiniciar,
-                           botao_sair_gameover, botao_menu, botao_flashcards, botao_loja, botao_estatisticas)
+                        botao_sair_gameover, botao_menu, botao_flashcards, botao_loja, botao_estatisticas)
 from game.ui.conta import TelaConfig, TelaLogin, TelaCadastro
 from game.ui.perfil import TelaTrocarSenha, TelaTrocarUsuario, TelaApagarConta
 from game.ui.pergunta import TelaPergunta
@@ -45,7 +45,7 @@ COMBO_MAXIMO = 5
 ESPACO_MINIMO = 150
 ESPACO_MAXIMO = 270
 ALTURA_PERSONAGEM = 120
-ALTURA_PERSONAGEM_SKIN = int(ALTURA_PERSONAGEM * 1.2)   # skins compradas aparecem um pouco maiores
+ALTURA_PERSONAGEM_SKIN = int(ALTURA_PERSONAGEM * 1.2)
 ALTURA_VILAO = 90
 ALTURA_CEREBRO = 60
 PONTOS_ACERTO = 5
@@ -55,14 +55,13 @@ FATOR_CAMERA_LENTA = 0.6
 FRAMES_IMUNIDADE_POS_PERGUNTA = 90
 X_PERSONAGEM = 150
 
-# modo ativo ao abrir o jogo, até o jogador escolher outro na tela de modos
+
 MODO_INICIAL = "flashcard"
 
 ESTADOS_CONTA = ("config", "login", "cadastro", "trocar_senha", "trocar_usuario", "apagar_conta")
 ESTADOS_PARTIDA = ("jogar", "pergunta", "tutorial", "powerup", "carta", "pausa")
-# telas sem campo de texto, onde a tecla M pode ligar e desligar o som
 ESTADOS_SEM_DIGITACAO = ("menu", "jogar", "pausa", "gameover", "rank", "modos", "loja", "estatisticas",
-                         "pergunta", "powerup")
+                        "pergunta", "powerup")
 
 
 class Motor:
@@ -86,9 +85,9 @@ class Motor:
 
         # jogador logado: None ou {"id": ..., "usuario": ...}
         self.jogador = None
-        self.origem_login = "menu"   # para onde o botão "Voltar" do login leva
-        self.apos_login = None       # tela que o jogador queria abrir quando foi mandado para o login
-        self.tutorial_visitante = False
+        self.origem_login = "menu"
+        self.apos_login = None
+        self.tutorial_visitante = set()
         self.fundo_atual = None
 
         # telas de conta
@@ -125,8 +124,6 @@ class Motor:
             "apagar_conta": self.tela_apagar_conta,
         }
 
-        # o personagem é criado uma única vez; as imagens dele e do vilão
-        # trocam conforme o modo, e a posição real é definida em iniciar_partida()
         self.personagem = Personagem(
             largura_tela=LARGURA_TELA,
             altura_tela=ALTURA_TELA,
@@ -141,7 +138,6 @@ class Motor:
 
     @property
     def logado(self):
-        """True se há um jogador logado. Use para liberar conteúdo exclusivo (ex.: personagem)."""
         return self.jogador is not None
 
     @property
@@ -149,7 +145,6 @@ class Motor:
         return self.jogador["id"] if self.jogador else None
 
     def escolher_modo(self, modo):
-        """Troca os vilões, o chão e os obstáculos pelos do modo escolhido."""
         self.modo = modo
         self.viloes = [Vilao.carregar_imagens(caminhos, ALTURA_VILAO) for caminhos in caminhos_viloes(modo)]
         self.imagem_tile = Chao.carregar_tile(caminho_chao(modo))
@@ -169,7 +164,6 @@ class Motor:
             self.fundo_atual = caminho
 
     def iniciar_partida(self):
-        """Prepara uma partida nova do zero (usada no início, no reinício e ao jogar pelo menu)."""
         self.aplicar_visual()
         self.pontos = 0
         self.combo = 0
@@ -182,8 +176,6 @@ class Motor:
         self.powerups.resetar()
         self.vidas.resetar()
 
-        # o chão é criado primeiro, porque o personagem
-        # precisa nascer em cima de um bloco já existente
         self.gerenciador_chao = GerenciadorChao(
             largura_tela=LARGURA_TELA,
             altura_tela=ALTURA_TELA,
@@ -208,18 +200,20 @@ class Motor:
             self.estado = "tutorial"
 
     def tutorial_visto(self):
-        return db.tutorial_visto(self.id_jogador) if self.logado else self.tutorial_visitante
+        if self.logado:
+            return db.tutorial_visto(self.id_jogador, self.modo)
+        return self.modo in self.tutorial_visitante
 
     def fechar_tutorial(self):
         if self.logado:
-            db.marcar_tutorial_visto(self.id_jogador)
+            db.marcar_tutorial_visto(self.id_jogador, self.modo)
         else:
-            self.tutorial_visitante = True
+            self.tutorial_visitante.add(self.modo)
         self.estado = "jogar"
 
     def desenhar_partida(self):
         desenhar_jogo(self.tela, self.fundo, self.clima, self.personagem, self.gerenciador_chao,
-                      self.pontos, self.powerups, min(self.combo, COMBO_MAXIMO), self.vidas)
+                    self.pontos, self.powerups, min(self.combo, COMBO_MAXIMO), self.vidas)
         self.controles.desenhar(self.tela, self.som)
 
     def jogo(self):
@@ -287,10 +281,8 @@ class Motor:
             elif self.estado in self.formularios:
                 self.formularios[self.estado].desenhar(self.tela, self.clima)
 
-            # único update de tela por frame
             pygame.display.update()
 
-    # ------------------------------------------------------------ navegação
 
     def abrir_config(self, mensagem=""):
         self.tela_config.mensagem = mensagem
@@ -343,12 +335,10 @@ class Motor:
         self.estado = "cadastro"
 
     def abrir_perfil(self, estado):
-        """Abre trocar senha, trocar usuário ou apagar conta."""
         self.formularios[estado].abrir(self.jogador)
         self.estado = estado
 
     def tratar_evento_conta(self, evento):
-        """Eventos das telas de configuração, login, cadastro e perfil."""
         if self.estado == "config":
             acao = self.tela_config.tratar_evento(evento, self.jogador)
 
@@ -484,7 +474,6 @@ class Motor:
                     self.responder_pergunta(resultado)
                 continue
 
-            # nas telas de conta, o ESC volta uma tela em vez de fechar o jogo
             if self.estado in ESTADOS_CONTA:
                 self.tratar_evento_conta(evento)
                 continue
@@ -511,16 +500,13 @@ class Motor:
                 if self.estado == "menu":
                     self.apos_login = None
                     if botao_jogar.clicado(evento.pos):
-                        # qualquer pessoa pode jogar, logada ou não
                         self.usar_meus_cards = False
                         self.comecar_partida()
 
                     elif botao_ranking.clicado(evento.pos):
-                        # o ranking é individual, então precisa de login
                         if not self.logado:
                             self.abrir_login("Faça login para ver o seu ranking.")
                         else:
-                            # consulta o banco uma vez, não a cada frame
                             self.tela_ranking.abrir({"geral": get_top5_pontuacao(self.jogador["id"])})
                             self.estado = "rank"
 
@@ -593,12 +579,11 @@ class Motor:
     def terminar_partida(self):
         self.estado = "gameover"
         self.som.tocar("gameover")
-        # visitantes jogam normalmente, mas a pontuação só é salva com login
-        # (nos próprios cards o jogador se autoavalia, então não vale ranking)
+
         vale_ranking = self.logado and not self.usar_meus_cards
         recorde = vale_ranking and self.pontos > max(get_top5_pontuacao(self.jogador["id"]), default=0)
         self.resumo = {"pontos": self.pontos, "acertos": self.acertos, "erros": self.erros,
-                       "combo": self.melhor_combo, "moedas": self.powerups.moedas, "recorde": recorde}
+                    "combo": self.melhor_combo, "moedas": self.powerups.moedas, "recorde": recorde}
         if vale_ranking:
             salvar_pontuacao(self.jogador["id"], self.pontos, self.powerups.moedas)
 
@@ -614,7 +599,6 @@ class Motor:
             self.usar_meus_cards = False
 
         dificuldade = min(3, 1 + self.pontos // PONTOS_POR_DIFICULDADE)
-        # o histórico vale entre partidas: só repete quando o banco do modo acaba
         vistas = self.vistas_por_modo.setdefault(self.modo, [])
         pergunta = sortear(self.modo, vistas, self.id_jogador, dificuldade)
         if pergunta["enunciado"] in vistas:

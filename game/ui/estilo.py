@@ -36,7 +36,7 @@ def escurecer(cor, fator=0.55):
 
 
 def desenhar_placa(tela, rect, raio=esc(16), veios=True):
-    """Painel de madeira com borda escura e sombra; os veios são opcionais."""
+    """Painel de madeira com borda escura e sombra"""
     pygame.draw.rect(tela, COR_MADEIRA_ESCURA, rect.move(0, esc(8)), border_radius=raio)
     pygame.draw.rect(tela, COR_MADEIRA, rect, border_radius=raio)
     if veios:
@@ -67,7 +67,7 @@ def _contorno_degrau(rect, canto):
 
 
 def desenhar_bloco_pixel(tela, rect, fundo, borda, canto=esc(4), espessura=esc(4), sombra=esc(5)):
-    """Bloco de pixel art: cantos em degrau, borda grossa, brilho em cima e sombra embaixo."""
+    """Bloco de pixel art"""
     if sombra:
         pygame.draw.polygon(tela, escurecer(borda, 0.45), _contorno_degrau(rect.move(0, sombra), canto))
     pygame.draw.polygon(tela, borda, _contorno_degrau(rect, canto))
@@ -90,7 +90,6 @@ PALETAS = {
 
 
 def desenhar_botao_pixel(tela, rect, paleta, unidade=esc(4)):
-    """Botão no estilo das imagens do jogo: contorno escuro, brilho em cima e à esquerda, faixa embaixo."""
     contorno, fundo, faixa, brilho = paleta
     u = unidade
     pygame.draw.polygon(tela, contorno, _contorno_degrau(rect, u))

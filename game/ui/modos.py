@@ -80,14 +80,12 @@ class TelaModos:
         return pygame.Rect(x * self.escala, y * self.escala, w * self.escala, h * self.escala)
 
     def _rota_para(self, modo):
-        """Volta até o cruzamento (se estiver numa ilha) e segue para a ilha escolhida."""
         volta = [CRUZAMENTO]
         if self.local:
             volta = [*reversed(ROTAS[self.local][:-1]), CRUZAMENTO]
         return [self._na_tela(p) for p in [*volta, *ROTAS[modo]]]
 
     def abrir(self, modo):
-        """Coloca o personagem do modo atual na ilha dele."""
         self.local = modo
         self.destino = None
         pos = self._na_tela(ROTAS[modo][-1])
@@ -105,7 +103,6 @@ class TelaModos:
                                VELOCIDADE * self.escala)
 
     def tratar_evento(self, evento):
-        """Devolve "voltar" ou None; o modo escolhido só sai de atualizar(), quando o personagem chega."""
         if evento.type == pygame.KEYDOWN and evento.key == pygame.K_ESCAPE:
             return "voltar"
         if evento.type == pygame.MOUSEBUTTONDOWN and evento.button == 1:
@@ -118,7 +115,6 @@ class TelaModos:
         return None
 
     def atualizar(self):
-        """Devolve o modo escolhido quando o personagem termina de andar."""
         self.caminhante.atualizar()
         if self.destino and not self.caminhante.andando:
             self.local, self.destino = self.destino, None

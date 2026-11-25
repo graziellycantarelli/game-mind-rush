@@ -6,10 +6,10 @@ from game.ui.estilo import (COR_CREME, COR_DICA, COR_TITULO, CORES_ALTERNATIVAS,
                             desenhar_botao_colorido, clarear)
 from game.ui.fontes import renderizar
 from game.ui.pergunta import (FONTE_ALTERNATIVA, FONTE_AVISO, FONTE_TITULO, BRANCO, MARGEM, PREENCHIMENTO,
-                              ESPACO, RAIO_NUMERO, quebrar_linhas)
+                            ESPACO, RAIO_NUMERO, quebrar_linhas)
 
 TECLAS = [pygame.K_1 + i for i in range(len(POWERUPS))]
-ATRASO_ENTRADA_MS = 300   # evita escolher sem querer com o clique que fechou a pergunta
+ATRASO_ENTRADA_MS = 300   
 
 
 class TelaPowerUp:
@@ -41,7 +41,7 @@ class TelaPowerUp:
         y_cartas = y
 
         self.painel = pygame.Rect(0, 0, largura_painel,
-                                  y_cartas + altura_carta + ESPACO + FONTE_AVISO.get_linesize() + MARGEM)
+                                y_cartas + altura_carta + ESPACO + FONTE_AVISO.get_linesize() + MARGEM)
         self.painel.center = (LARGURA_TELA // 2, ALTURA_TELA // 2)
         self.cartas = [
             (chave, pygame.Rect(self.painel.x + MARGEM + i * (largura_carta + ESPACO),

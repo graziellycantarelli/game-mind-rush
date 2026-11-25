@@ -12,7 +12,7 @@ class Personagem:
 
         self.rect = pygame.Rect(x, y, 0, altura)
 
-        # --- física vertical ---
+        #física vertical
         # pos_y guarda a posição como float: o Rect só aceita inteiros, e
         # somar 0.6 direto no rect.y fazia o personagem "piscar" no chão
         # (no_chao alternava True/False e o pulo falhava a cada 2 frames)
@@ -22,17 +22,16 @@ class Personagem:
         self.gravidade = 0.9
         self.forca_salto = -22
 
-        # --- controle de estado ---
+        #controle de estado
         self.no_chao = False
         self.vivo = True
 
-        # --- power-ups ---
+        #power-ups
         self.escudo = False
         self.pulo_duplo = False
         self.pulos_no_ar = 0
         self.imune = 0
 
-        # --- animação (corrida) ---
         self.intervalo_troca = 8
         self.trocar_imagens(caminhos_imagens, altura)
 
@@ -56,7 +55,6 @@ class Personagem:
         return self.rect.inflate(-20, -10)
 
     def resetar(self, x, y):
-        """Volta o personagem ao estado inicial de uma partida."""
         self.rect.x = x
         self.rect.y = y
         self.pos_y = float(y)
@@ -80,7 +78,6 @@ class Personagem:
             self.pulos_no_ar += 1
 
     def aplicar_gravidade(self):
-        # guarda onde os pés estavam ANTES de mover neste frame
         self.bottom_anterior = self.rect.bottom
 
         self.velocidade_y += self.gravidade
@@ -94,8 +91,6 @@ class Personagem:
             if not self.rect.colliderect(chao.rect):
                 continue
 
-            # pousar em cima: está descendo e os pés estavam acima do
-            # topo do bloco no frame passado (10px de tolerância)
             if self.velocidade_y >= 0 and self.bottom_anterior <= chao.rect.top + 10:
                 self.rect.bottom = chao.rect.top
                 self.pos_y = float(self.rect.y)
@@ -104,8 +99,6 @@ class Personagem:
                 self.pulos_no_ar = 0
                 break
 
-            # qualquer outra batida (lateral ou por baixo) é fatal; se o escudo
-            # absorver, o personagem é colocado em cima do bloco
             if self.hitbox.colliderect(chao.rect) and self._ferir():
                 self.rect.bottom = chao.rect.top
                 self.pos_y = float(self.rect.y)
@@ -114,7 +107,6 @@ class Personagem:
                 self.pulos_no_ar = 0
 
     def verificar_colisao_com_plataformas(self, plataformas):
-        """Plataformas flutuantes só valem por cima: por baixo e pelos lados o personagem passa direto."""
         if self.no_chao or self.velocidade_y < 0:
             return
 
@@ -128,7 +120,6 @@ class Personagem:
                 break
 
     def _ferir(self):
-        """Devolve True se o golpe foi absorvido pelo escudo ou pela imunidade."""
         if self.imune > 0:
             return True
         if self.escudo:

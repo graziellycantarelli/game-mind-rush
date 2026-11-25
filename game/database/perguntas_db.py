@@ -113,13 +113,11 @@ def _escolher(candidatas, jogador_id, vezes, ultima):
         return random.choice(novas)
     if revisao:
         return random.choice(revisao)
-    pesos = [1.0 / (1 + vezes.get(l[0], 0)) for l in candidatas]
+    pesos = [(1.0 / (1 + vezes.get(l[0], 0))) ** 2 * (2 if ultima.get(1[0]) == 0 else 1) for l in candidatas]
     return random.choices(candidatas, weights=pesos)[0]
 
 
 def sortear(modo, feitas, jogador_id=None, dificuldade_max=3):
-    """feitas: enunciados já perguntados na partida. jogador_id None = visitante.
-    dificuldade_max: ignorado se não sobrar nenhuma pergunta dentro do limite."""
     with _sessao() as con:
         linhas = con.execute(
             "SELECT id, enunciado, certa, errada1, errada2, errada3, dificuldade "

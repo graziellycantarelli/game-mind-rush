@@ -51,7 +51,7 @@ FUNDOS = {
 
 
 def tema(modo):
-    """Imagens do modo; o que ainda não existe usa as do modo padrão."""
+    """Imagens do modo o que ainda não existe usa as do modo padrão."""
     padrao = TEMAS[MODO_PADRAO]
     return {
         chave: caminhos if all(os.path.exists(c) for c in caminhos) else padrao[chave]
@@ -64,7 +64,7 @@ def _existente(caminho, padrao):
 
 
 def caminho_fundo(modo):
-    """Fundo do modo; se a imagem ainda não existe, usa o padrão."""
+    """Fundo do modo se a imagem ainda não existe, usa o padrão."""
     return _existente(FUNDOS[modo], FUNDO_PADRAO)
 
 
@@ -80,7 +80,7 @@ QUANTIDADE_OBSTACULOS = 5
 
 
 def caminhos_obstaculos(modo):
-    """Os obstáculos do modo que existem; sem nenhum, vale o obstáculo único de antes."""
+    """Os obstáculos do modo que existe."""
     caminhos = [f"./img/elementos/obstaculos/{modo}/obstaculo_{i}.png" for i in range(1, QUANTIDADE_OBSTACULOS + 1)]
     return [c for c in caminhos if os.path.exists(c)] or [caminho_obstaculo(modo)]
 

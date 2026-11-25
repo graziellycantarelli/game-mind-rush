@@ -53,7 +53,7 @@ class TelaEstatisticas:
         self.largura_barra = largura - 2 * MARGEM - LARGURA_NOME - LARGURA_PLACAR - ESPACO
 
         self.botao_voltar = BotaoTexto("Voltar", (LARGURA_TELA // 2, self.painel.bottom + 4 * MARGEM),
-                                       cor=COR_BOTAO_NEUTRO)
+                                    cor=COR_BOTAO_NEUTRO)
 
     def abrir(self, jogador):
         dados = estatisticas_db.resumo(jogador["id"])
